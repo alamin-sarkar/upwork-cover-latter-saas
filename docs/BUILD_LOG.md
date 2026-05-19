@@ -79,3 +79,27 @@
   - `.venv/bin/python -m pytest -q` => `8 passed`
 - Next step:
   - Build authenticated profile/settings module on top of this auth base.
+
+## 2026-05-19 13:50 (Asia/Dhaka)
+- Completed micro-milestone: profile settings backend foundation (profile + skills).
+- Added backend profile domain under `apps/api`:
+  - `app/models/profile.py` with `Profile` and `ProfileSkill` models
+  - `app/schemas/profile.py` for profile and skill request/response contracts
+  - `app/api/routes/profile.py` with authenticated endpoints:
+    - `GET /api/v1/profile`
+    - `PUT /api/v1/profile`
+    - `GET /api/v1/profile/skills`
+    - `POST /api/v1/profile/skills`
+    - `DELETE /api/v1/profile/skills/{skill_id}`
+- Integrated profile router into API bootstrap:
+  - `app/api/routes/__init__.py`
+  - `app/api/__init__.py`
+  - `app/main.py`
+- Added migration:
+  - `alembic/versions/0002_profile_and_skills.py`
+- Added TDD coverage:
+  - `tests/test_profile.py` for auto-profile creation, profile update, skill add/list, duplicate-skill rejection
+- Validation:
+  - `.venv/bin/python -m pytest -q` => `12 passed`
+- Next step:
+  - Extend settings domain with projects/professional-life/custom sections and CRUD APIs.
