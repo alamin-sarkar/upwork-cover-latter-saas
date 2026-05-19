@@ -1,5 +1,8 @@
 # CLAUDE.md — Project Build Contract
 
+## Resume protocol
+On any "continue" / "next phase" prompt: read `docs/PHASE_TRACKER.md` first — it tracks the current pointer, scope, and acceptance criteria for every phase. Then read the latest `docs/BUILD_LOG.md` entry for fresh context. One phase per run.
+
 ## Product
 Upwork Cover Letter AI SaaS: structured freelancer profile + guideline memory + job-post analysis + multi-variant cover-letter generation + feedback-driven improvement.
 

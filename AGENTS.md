@@ -3,6 +3,9 @@
 ## Objective
 Build a production-grade Upwork Cover Letter AI SaaS incrementally, with each run completing one safe, reviewable micro-milestone.
 
+## Resume protocol
+When the user asks to "continue", "start the next phase", or anything similar **without naming a phase**: open `docs/PHASE_TRACKER.md` first. It owns the "Current pointer" line, per-phase scope, and acceptance criteria. After shipping a phase, update the checkbox + pointer there, append to `docs/BUILD_LOG.md`, and commit. Never skip phases.
+
 ## Product Scope
 The product analyzes an Upwork job post, matches it with a user's structured profile and memory, and generates multiple personalized cover-letter variants plus guidance.
 

@@ -1,0 +1,19 @@
+[project]
+name = "ai-workflows"
+version = "0.1.0"
+description = "Shared LangGraph graphs, prompts, evaluators, and schemas for cover-letter generation"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "pydantic>=2.9",
+    "langchain>=0.3",
+    "langgraph>=0.2.50",
+    "anthropic>=0.39",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ai_workflows"]
