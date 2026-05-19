@@ -58,3 +58,24 @@
   - ensured doc changes are additive and do not disturb in-progress auth backend files
 - Next step:
   - Finish backend auth milestone already in progress before building profile/settings domain.
+
+## 2026-05-19 13:30 (Asia/Dhaka)
+- Completed micro-milestone: backend auth foundation.
+- Added backend auth domain under `apps/api`:
+  - `app/api/routes/auth.py` for register, login, refresh, and current-user endpoints
+  - `app/core/security.py` for password hashing and JWT issuance/verification
+  - `app/core/deps.py` for DB session and bearer-token current-user resolution
+  - `app/models/user.py` and `app/models/__init__.py` for user, role, and plan persistence
+  - `app/schemas/auth.py`, `app/schemas/user.py`, and package exports for request/response contracts
+- Updated bootstrap files:
+  - `app/main.py` to mount auth routes
+  - `app/core/config.py` and `.env.example` for JWT settings
+  - `alembic/versions/0001_baseline.py` to create the users table
+  - `pyproject.toml` for auth-related dependencies
+  - `apps/api/README.md` with auth endpoint and run/test instructions
+- Added TDD coverage:
+  - `tests/test_auth.py` for register, duplicate email rejection, login, invalid password rejection, `/me`, refresh, and refresh token misuse
+- Validation:
+  - `.venv/bin/python -m pytest -q` => `8 passed`
+- Next step:
+  - Build authenticated profile/settings module on top of this auth base.

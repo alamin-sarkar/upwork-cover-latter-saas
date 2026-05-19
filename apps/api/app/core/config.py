@@ -8,6 +8,10 @@ class Settings(BaseSettings):
     APP_ENV: str = "development"
     APP_PORT: int = 8000
     DATABASE_URL: str = "postgresql+psycopg://postgres:postgres@localhost:5432/interview_copilot"
+    JWT_SECRET_KEY: str = "change-me-in-production-32chars-min"
+    JWT_ALGORITHM: str = "HS256"
+    JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    JWT_REFRESH_TOKEN_EXPIRE_DAYS: int = 14
 
 
 settings = Settings()
