@@ -13,5 +13,11 @@ class Settings(BaseSettings):
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     JWT_REFRESH_TOKEN_EXPIRE_DAYS: int = 14
 
+    LLM_PROVIDER: str = "mock"
+    LLM_MODEL: str = "mock-cover-letter-v1"
+    OPENROUTER_API_KEY: str | None = None
+    GROQ_API_KEY: str | None = None
+    GEMINI_API_KEY: str | None = None
+
 
 settings = Settings()

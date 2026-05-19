@@ -204,3 +204,22 @@
   - `.venv/bin/python -m pytest -q` => `20 passed`
 - Next step:
   - integrate real LLM provider node (prompt templates + structured output parsing per structure type).
+
+## 2026-05-19 15:38 (Asia/Dhaka)
+- Completed micro-milestone: real LLM node integration scaffold (provider config + prompt templates + structure parser path).
+- Extended provider configuration:
+  - `app/core/config.py`
+  - `.env.example`
+  - Added: `LLM_PROVIDER`, `LLM_MODEL`, `OPENROUTER_API_KEY`, `GROQ_API_KEY`, `GEMINI_API_KEY`
+- Upgraded orchestration service:
+  - `app/services/cover_letter_graph.py`
+  - Added prompt-template builder node
+  - Added provider invocation node scaffold
+  - Added JSON structured output parser node
+  - Added structure-wise prompt instructions (`direct-value`, `problem-solution`, `story-proof`)
+- Expanded tests:
+  - `test_structure_wise_output_parser_behavior` in `tests/test_cover_letter.py`
+- Validation:
+  - `.venv/bin/python -m pytest -q` => `21 passed`
+- Next step:
+  - wire actual provider clients (OpenRouter/Groq/Gemini) with fallback chain + timeout/retry policy.

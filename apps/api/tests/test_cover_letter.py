@@ -134,3 +134,30 @@ def test_langgraph_orchestration_path_in_generation(client: TestClient) -> None:
     variants = generated.json()
     assert len(variants) == 3
     assert all("Analyze:" in v["analysis_summary"] for v in variants)
+
+def test_structure_wise_output_parser_behavior(client: TestClient) -> None:
+    access_token = _register_and_get_token(client)
+    headers = {"Authorization": f"Bearer {access_token}"}
+
+    job = client.post(
+        "/api/v1/cover-letter/job-posts",
+        headers=headers,
+        json={
+            "title": "Need proposal automation engineer",
+            "raw_text": "Need FastAPI + LangGraph engineer to produce multiple tailored proposal styles with memory-aware outputs.",
+            "source": "upwork",
+        },
+    )
+    assert job.status_code == 201
+
+    generated = client.post(
+        "/api/v1/cover-letter/generate",
+        headers=headers,
+        json={"job_post_id": job.json()["id"]},
+    )
+    assert generated.status_code == 200
+    variants = generated.json()
+    structures = {v["structure"] for v in variants}
+    assert structures == {"direct-value", "problem-solution", "story-proof"}
+    assert all(v["draft_text"] for v in variants)
+    assert all(v["analysis_summary"].startswith("Analyze:") for v in variants)
