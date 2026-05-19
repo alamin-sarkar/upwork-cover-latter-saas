@@ -108,3 +108,29 @@ def test_feedback_memory_loop_applies_signal(client: TestClient) -> None:
     second_generation = client.post("/api/v1/cover-letter/generate", headers=headers, json={"job_post_id": job_id})
     assert second_generation.status_code == 200
     assert "make letters more specific and concise" in second_generation.json()[0]["analysis_summary"].lower()
+
+
+def test_langgraph_orchestration_path_in_generation(client: TestClient) -> None:
+    access_token = _register_and_get_token(client)
+    headers = {"Authorization": f"Bearer {access_token}"}
+
+    job = client.post(
+        "/api/v1/cover-letter/job-posts",
+        headers=headers,
+        json={
+            "title": "Build LangGraph workflow",
+            "raw_text": "Need a developer to orchestrate multiple cover letter generation strategies with structured reasoning.",
+            "source": "upwork",
+        },
+    )
+    assert job.status_code == 201
+
+    generated = client.post(
+        "/api/v1/cover-letter/generate",
+        headers=headers,
+        json={"job_post_id": job.json()["id"]},
+    )
+    assert generated.status_code == 200
+    variants = generated.json()
+    assert len(variants) == 3
+    assert all("Analyze:" in v["analysis_summary"] for v in variants)

@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_user, get_db
 from app.models import CoverLetterFeedback, CoverLetterGeneration, CoverLetterJobPost, Profile, ProfileGuideline, ProfileSample, User
+from app.services.cover_letter_graph import run_cover_letter_graph
 from app.schemas.cover_letter import (
     CoverLetterFeedbackCreate,
     CoverLetterFeedbackRead,
@@ -61,20 +62,25 @@ def generate_cover_letters(payload: GenerateCoverLetterRequest, current_user: Us
         else:
             preference_note = "User feedback trend: make letters more specific and concise."
 
-    variants = [
-        ("direct-value", f"Analyze: {job.title}. Priorities: {guideline_text}", f"Hi, I noticed your {job.title} project. I'm {headline} and can deliver quickly with clear milestones."),
-        ("problem-solution", f"Analyze: {job.title}. Priorities: {guideline_text}", f"Your requirement suggests immediate execution needs. As {headline}, I can design and ship a reliable solution end-to-end."),
-        ("story-proof", f"Analyze: {job.title}. Priorities: {guideline_text}", f"I recently completed a similar project with measurable impact. For your {job.title}, I can provide the same outcome with transparent communication."),
-    ]
+    structures = ["direct-value", "problem-solution", "story-proof"]
 
     out = []
-    for structure, analysis_summary, draft_text in variants:
+    for structure in structures:
+        graph_result = run_cover_letter_graph(
+            job_title=job.title,
+            raw_text=job.raw_text,
+            headline=headline,
+            guideline_text=guideline_text,
+            tone_hint=sample_hint,
+            preference_note=preference_note,
+            structure=structure,
+        )
         row = CoverLetterGeneration(
             user_id=current_user.id,
             job_post_id=job.id,
             structure=structure,
-            analysis_summary=f"{analysis_summary}. Tone hint: {sample_hint}. {preference_note}".strip(),
-            draft_text=draft_text,
+            analysis_summary=graph_result["analysis_summary"],
+            draft_text=graph_result["draft_text"],
         )
         db.add(row)
         out.append(row)

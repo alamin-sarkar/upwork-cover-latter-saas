@@ -188,3 +188,19 @@
   - `.venv/bin/python -m pytest -q` => `19 passed`
 - Next step:
   - LangChain/LangGraph-based prompt orchestration module (replace scaffold text with graph-driven generation).
+
+## 2026-05-19 15:28 (Asia/Dhaka)
+- Completed micro-milestone: LangChain/LangGraph orchestration scaffold.
+- Added orchestration service:
+  - `app/services/cover_letter_graph.py`
+  - Introduced graph-driven generation pipeline with fallback execution path.
+- Updated generation API to use orchestration service instead of inline variant text assembly.
+- Added dependencies in `apps/api/pyproject.toml`:
+  - `langchain`
+  - `langgraph`
+- Expanded tests:
+  - `test_langgraph_orchestration_path_in_generation` in `tests/test_cover_letter.py`
+- Validation:
+  - `.venv/bin/python -m pytest -q` => `20 passed`
+- Next step:
+  - integrate real LLM provider node (prompt templates + structured output parsing per structure type).
