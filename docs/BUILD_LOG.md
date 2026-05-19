@@ -22,5 +22,15 @@
   - `tests/test_health.py`, `README.md`
 - Validation:
   - `pytest -q` => `1 passed`
+## 2026-05-19 11:14 (Asia/Dhaka)
+- Completed micro-milestone: Next.js + TypeScript + base auth shell scaffold.
+- Added under `apps/web`:
+  - Next.js app bootstrap (App Router, TypeScript, Tailwind, ESLint)
+  - Home page with Login/Register navigation
+  - `src/app/login/page.tsx`
+  - `src/app/register/page.tsx`
+- Validation:
+  - `npm run lint` => pass
+  - `npm run build` => pass
 - Next step:
-  - Bootstrap Next.js TypeScript app shell in `apps/web`.
+  - Implement JWT auth endpoints and user/plan schema in backend.
