@@ -127,3 +127,21 @@
   - `.venv/bin/python -m pytest -q` => `15 passed`
 - Next step:
   - Add update endpoints for these sections and start guideline/sample library module.
+
+## 2026-05-19 14:54 (Asia/Dhaka)
+- Completed micro-milestone: update endpoints (PATCH) + guideline/sample library module.
+- Added PATCH endpoints for mutable profile sections:
+  - `PATCH /api/v1/profile/projects/{project_id}`
+  - `PATCH /api/v1/profile/professional-life/{entry_id}`
+  - `PATCH /api/v1/profile/custom-sections/{section_id}`
+- Added new guideline + sample library module:
+  - `GET/POST/PATCH/DELETE /api/v1/profile/guidelines`
+  - `GET/POST/PATCH/DELETE /api/v1/profile/samples`
+- Extended profile models and schemas with guideline/sample entities and update DTOs.
+- Added migration:
+  - `alembic/versions/0004_profile_guidelines_samples.py`
+- Expanded tests for PATCH flows and guideline/sample CRUD/PATCH.
+- Validation:
+  - `.venv/bin/python -m pytest -q` => `17 passed`
+- Next step:
+  - Start cover-letter generation engine scaffold (job ingestion + prompt orchestration + history linkage).

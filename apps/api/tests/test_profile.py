@@ -182,3 +182,58 @@ def test_custom_sections_crud_flow(client: TestClient) -> None:
         headers={"Authorization": f"Bearer {access_token}"},
     )
     assert delete_response.status_code == 204
+
+def test_project_patch_updates_existing_project(client: TestClient) -> None:
+    access_token = _register_and_get_token(client)
+    create = client.post(
+        "/api/v1/profile/projects",
+        headers={"Authorization": f"Bearer {access_token}"},
+        json={"title": "Initial Title"},
+    )
+    project_id = create.json()["id"]
+
+    patch_response = client.patch(
+        f"/api/v1/profile/projects/{project_id}",
+        headers={"Authorization": f"Bearer {access_token}"},
+        json={"title": "Updated Title", "impact": "Higher proposal win-rate"},
+    )
+    assert patch_response.status_code == 200
+    data = patch_response.json()
+    assert data["title"] == "Updated Title"
+    assert data["impact"] == "Higher proposal win-rate"
+
+
+def test_guidelines_and_samples_crud_and_patch_flow(client: TestClient) -> None:
+    access_token = _register_and_get_token(client)
+
+    guideline = client.post(
+        "/api/v1/profile/guidelines",
+        headers={"Authorization": f"Bearer {access_token}"},
+        json={"title": "Open strong", "content": "Mention relevance in first 2 lines", "priority": 1},
+    )
+    assert guideline.status_code == 201
+    guideline_id = guideline.json()["id"]
+
+    g_patch = client.patch(
+        f"/api/v1/profile/guidelines/{guideline_id}",
+        headers={"Authorization": f"Bearer {access_token}"},
+        json={"priority": 2},
+    )
+    assert g_patch.status_code == 200
+    assert g_patch.json()["priority"] == 2
+
+    sample = client.post(
+        "/api/v1/profile/samples",
+        headers={"Authorization": f"Bearer {access_token}"},
+        json={"title": "SaaS Job", "body": "Hi, I built similar SaaS products...", "tone": "professional"},
+    )
+    assert sample.status_code == 201
+    sample_id = sample.json()["id"]
+
+    s_patch = client.patch(
+        f"/api/v1/profile/samples/{sample_id}",
+        headers={"Authorization": f"Bearer {access_token}"},
+        json={"tone": "friendly"},
+    )
+    assert s_patch.status_code == 200
+    assert s_patch.json()["tone"] == "friendly"

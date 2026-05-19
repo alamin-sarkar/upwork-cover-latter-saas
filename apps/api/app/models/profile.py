@@ -21,6 +21,8 @@ class Profile(Base):
     projects: Mapped[list["ProfileProject"]] = relationship(back_populates="profile", cascade="all, delete-orphan")
     professional_life_entries: Mapped[list["ProfileProfessionalLife"]] = relationship(back_populates="profile", cascade="all, delete-orphan")
     custom_sections: Mapped[list["ProfileCustomSection"]] = relationship(back_populates="profile", cascade="all, delete-orphan")
+    guidelines: Mapped[list["ProfileGuideline"]] = relationship(back_populates="profile", cascade="all, delete-orphan")
+    samples: Mapped[list["ProfileSample"]] = relationship(back_populates="profile", cascade="all, delete-orphan")
 
 
 class ProfileSkill(Base):
@@ -77,3 +79,29 @@ class ProfileCustomSection(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     profile: Mapped[Profile] = relationship(back_populates="custom_sections")
+
+
+class ProfileGuideline(Base):
+    __tablename__ = "profile_guidelines"
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    profile_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("profiles.id", ondelete="CASCADE"), nullable=False)
+    title: Mapped[str] = mapped_column(String(160), nullable=False)
+    content: Mapped[str] = mapped_column(String(5000), nullable=False)
+    priority: Mapped[int] = mapped_column(Integer, nullable=False, default=100)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    profile: Mapped[Profile] = relationship(back_populates="guidelines")
+
+
+class ProfileSample(Base):
+    __tablename__ = "profile_samples"
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    profile_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("profiles.id", ondelete="CASCADE"), nullable=False)
+    title: Mapped[str] = mapped_column(String(200), nullable=False)
+    body: Mapped[str] = mapped_column(String(7000), nullable=False)
+    tone: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    profile: Mapped[Profile] = relationship(back_populates="samples")

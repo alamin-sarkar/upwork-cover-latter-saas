@@ -23,6 +23,12 @@ class ProfileSkillCreate(BaseModel):
     years_experience: int | None = Field(default=None, ge=0, le=60)
 
 
+class ProfileSkillUpdate(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=120)
+    proficiency: str | None = Field(default=None, max_length=40)
+    years_experience: int | None = Field(default=None, ge=0, le=60)
+
+
 class ProfileSkillRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -34,6 +40,14 @@ class ProfileSkillRead(BaseModel):
 
 class ProfileProjectCreate(BaseModel):
     title: str = Field(min_length=1, max_length=200)
+    description: str | None = Field(default=None, max_length=3000)
+    tech_stack: str | None = Field(default=None, max_length=500)
+    impact: str | None = Field(default=None, max_length=500)
+    project_url: str | None = Field(default=None, max_length=500)
+
+
+class ProfileProjectUpdate(BaseModel):
+    title: str | None = Field(default=None, min_length=1, max_length=200)
     description: str | None = Field(default=None, max_length=3000)
     tech_stack: str | None = Field(default=None, max_length=500)
     impact: str | None = Field(default=None, max_length=500)
@@ -59,6 +73,14 @@ class ProfileProfessionalLifeCreate(BaseModel):
     summary: str | None = Field(default=None, max_length=3000)
 
 
+class ProfileProfessionalLifeUpdate(BaseModel):
+    company: str | None = Field(default=None, min_length=1, max_length=200)
+    role_title: str | None = Field(default=None, min_length=1, max_length=200)
+    start_date: date | None = None
+    end_date: date | None = None
+    summary: str | None = Field(default=None, max_length=3000)
+
+
 class ProfileProfessionalLifeRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -75,9 +97,56 @@ class ProfileCustomSectionCreate(BaseModel):
     content: str = Field(min_length=1, max_length=5000)
 
 
+class ProfileCustomSectionUpdate(BaseModel):
+    section_name: str | None = Field(default=None, min_length=1, max_length=120)
+    content: str | None = Field(default=None, min_length=1, max_length=5000)
+
+
 class ProfileCustomSectionRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: uuid.UUID
     section_name: str
     content: str
+
+
+class ProfileGuidelineCreate(BaseModel):
+    title: str = Field(min_length=1, max_length=160)
+    content: str = Field(min_length=1, max_length=5000)
+    priority: int = Field(default=100, ge=1, le=1000)
+
+
+class ProfileGuidelineUpdate(BaseModel):
+    title: str | None = Field(default=None, min_length=1, max_length=160)
+    content: str | None = Field(default=None, min_length=1, max_length=5000)
+    priority: int | None = Field(default=None, ge=1, le=1000)
+
+
+class ProfileGuidelineRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    title: str
+    content: str
+    priority: int
+
+
+class ProfileSampleCreate(BaseModel):
+    title: str = Field(min_length=1, max_length=200)
+    body: str = Field(min_length=1, max_length=7000)
+    tone: str | None = Field(default=None, max_length=80)
+
+
+class ProfileSampleUpdate(BaseModel):
+    title: str | None = Field(default=None, min_length=1, max_length=200)
+    body: str | None = Field(default=None, min_length=1, max_length=7000)
+    tone: str | None = Field(default=None, max_length=80)
+
+
+class ProfileSampleRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    title: str
+    body: str
+    tone: str | None

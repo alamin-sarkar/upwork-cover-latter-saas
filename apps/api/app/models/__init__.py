@@ -1,8 +1,10 @@
 from app.models.profile import (
     Profile,
     ProfileCustomSection,
+    ProfileGuideline,
     ProfileProfessionalLife,
     ProfileProject,
+    ProfileSample,
     ProfileSkill,
 )
 from app.models.user import User, UserPlan, UserRole
@@ -16,4 +18,6 @@ __all__ = [
     "ProfileProject",
     "ProfileProfessionalLife",
     "ProfileCustomSection",
+    "ProfileGuideline",
+    "ProfileSample",
 ]
