@@ -161,3 +161,29 @@ def test_structure_wise_output_parser_behavior(client: TestClient) -> None:
     assert structures == {"direct-value", "problem-solution", "story-proof"}
     assert all(v["draft_text"] for v in variants)
     assert all(v["analysis_summary"].startswith("Analyze:") for v in variants)
+
+def test_provider_fallback_error_safe_contract(client: TestClient) -> None:
+    access_token = _register_and_get_token(client)
+    headers = {"Authorization": f"Bearer {access_token}"}
+
+    job = client.post(
+        "/api/v1/cover-letter/job-posts",
+        headers=headers,
+        json={
+            "title": "Need API fallback wiring",
+            "raw_text": "Need robust provider fallback chain with timeout and retry.",
+            "source": "upwork",
+        },
+    )
+    assert job.status_code == 201
+
+    generated = client.post(
+        "/api/v1/cover-letter/generate",
+        headers=headers,
+        json={"job_post_id": job.json()["id"]},
+    )
+    assert generated.status_code == 200
+    data = generated.json()
+    assert len(data) == 3
+    assert all(item["analysis_summary"] for item in data)
+    assert all(item["draft_text"] for item in data)

@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import json
+import time
 from typing import TypedDict
+
+import httpx
 
 from app.core.config import settings
 
@@ -59,13 +62,62 @@ def _build_prompt(state: CoverLetterState) -> CoverLetterState:
     return state
 
 
-def _invoke_llm_node(state: CoverLetterState) -> CoverLetterState:
-    provider = (settings.LLM_PROVIDER or "mock").lower()
+def _provider_candidates() -> list[tuple[str, str | None, str, str]]:
+    # priority: requested provider first, then fallback chain
+    configured = (settings.LLM_PROVIDER or "mock").lower()
+    base = [
+        ("openrouter", settings.OPENROUTER_API_KEY, "https://openrouter.ai/api/v1/chat/completions", settings.LLM_MODEL),
+        ("groq", settings.GROQ_API_KEY, "https://api.groq.com/openai/v1/chat/completions", settings.LLM_MODEL),
+        ("gemini", settings.GEMINI_API_KEY, "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", settings.LLM_MODEL),
+    ]
+    order = [configured] + [x[0] for x in base if x[0] != configured]
+    by_name = {x[0]: x for x in base}
+    out = [by_name[n] for n in order if n in by_name]
+    out.append(("mock", None, "", "mock-cover-letter-v1"))
+    return out
 
-    # Production integrations can be added here for openrouter/groq/gemini.
-    if provider in {"openrouter", "groq", "gemini"}:
-        # Scaffold: keep deterministic behavior for now until provider clients are wired.
-        pass
+
+def _call_with_retry(provider: str, api_key: str, url: str, model: str, prompt_text: str) -> str:
+    payload = {
+        "model": model,
+        "messages": [
+            {"role": "system", "content": "Output must be valid JSON only."},
+            {"role": "user", "content": prompt_text},
+        ],
+        "temperature": 0.3,
+    }
+    headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+
+    last_err = "unknown"
+    for attempt in range(1, 4):
+        try:
+            with httpx.Client(timeout=20.0) as client:
+                resp = client.post(url, headers=headers, json=payload)
+            if resp.status_code >= 500:
+                raise RuntimeError(f"server error {resp.status_code}")
+            resp.raise_for_status()
+            body = resp.json()
+            return body["choices"][0]["message"]["content"]
+        except Exception as exc:  # noqa: BLE001
+            last_err = f"{provider} attempt {attempt}: {exc}"
+            time.sleep(0.5 * attempt)
+    raise RuntimeError(last_err)
+
+
+def _invoke_llm_node(state: CoverLetterState) -> CoverLetterState:
+    errors: list[str] = []
+    for provider, key, url, model in _provider_candidates():
+        if provider == "mock":
+            break
+        if not key:
+            errors.append(f"{provider}: missing api key")
+            continue
+        try:
+            state["llm_raw_output"] = _call_with_retry(provider, key, url, model, state["prompt_text"])
+            return state
+        except Exception as exc:  # noqa: BLE001
+            errors.append(str(exc))
+            continue
 
     fallback_json = {
         "analysis_summary": (
@@ -73,6 +125,7 @@ def _invoke_llm_node(state: CoverLetterState) -> CoverLetterState:
             f"Tone hint: {state['tone_hint']}. {state['preference_note']}"
         ).strip(),
         "draft_text": _fallback_draft_by_structure(state),
+        "meta": {"fallback": True, "errors": errors[:3]},
     }
     state["llm_raw_output"] = json.dumps(fallback_json)
     return state
@@ -82,10 +135,7 @@ def _parse_output(state: CoverLetterState) -> CoverLetterState:
     try:
         payload = json.loads(state["llm_raw_output"])
     except Exception:
-        payload = {
-            "analysis_summary": f"Analyze: {state['job_title']}",
-            "draft_text": _fallback_draft_by_structure(state),
-        }
+        payload = {"analysis_summary": f"Analyze: {state['job_title']}", "draft_text": _fallback_draft_by_structure(state)}
 
     state["analysis_summary"] = str(payload.get("analysis_summary") or "").strip() or f"Analyze: {state['job_title']}"
     state["draft_text"] = str(payload.get("draft_text") or "").strip() or _fallback_draft_by_structure(state)
@@ -136,7 +186,4 @@ def run_cover_letter_graph(*, job_title: str, raw_text: str, headline: str, guid
         compiled = graph.compile()
         result = compiled.invoke(initial_state)
 
-    return {
-        "analysis_summary": result["analysis_summary"],
-        "draft_text": result["draft_text"],
-    }
+    return {"analysis_summary": result["analysis_summary"], "draft_text": result["draft_text"]}

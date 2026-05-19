@@ -223,3 +223,17 @@
   - `.venv/bin/python -m pytest -q` => `21 passed`
 - Next step:
   - wire actual provider clients (OpenRouter/Groq/Gemini) with fallback chain + timeout/retry policy.
+
+## 2026-05-19 15:48 (Asia/Dhaka)
+- Completed micro-milestone: actual provider client wiring scaffold with fallback chain + timeout/retry + error-safe contract.
+- Updated `app/services/cover_letter_graph.py`:
+  - Added provider candidate chain logic (`LLM_PROVIDER` first, then OpenRouter/Groq/Gemini, then mock).
+  - Added HTTP client invocation via `httpx` for OpenAI-compatible chat endpoints.
+  - Added retry policy (3 attempts, incremental backoff) and timeout control.
+  - Added error aggregation and graceful fallback JSON contract when providers fail.
+- Added regression test:
+  - `test_provider_fallback_error_safe_contract` in `tests/test_cover_letter.py`.
+- Validation:
+  - `.venv/bin/python -m pytest -q` => `22 passed`
+- Next step:
+  - add provider-specific model mapping + JSON schema enforcement and telemetry for fallback reason tracking.
