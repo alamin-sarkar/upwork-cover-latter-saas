@@ -4,6 +4,34 @@ Append a dated entry per completed milestone. Newest at the top.
 
 ---
 
+## 2026-05-19 — Phase 3: Auth + user/plan models
+
+**Scope:** JWT auth system with register, login, refresh, and me endpoints.
+
+**Delivered:**
+- `app/models/base.py` — SQLAlchemy 2 `DeclarativeBase`.
+- `app/models/user.py` — `User` ORM model + `Plan` enum (free/pro/team), audit timestamps.
+- `app/schemas/auth.py` — `RegisterRequest`, `LoginRequest`, `TokenResponse`, `RefreshRequest` (Pydantic v2).
+- `app/schemas/user.py` — `UserOut` (from_attributes=True).
+- `app/api/routes/auth.py` — `POST /auth/register` (201), `POST /auth/login`, `POST /auth/refresh` (stateless rotation), `GET /auth/me`.
+- `app/api/router.py` — top-level API router; include_router wired into `main.py`.
+- `app/core/deps.py` — added `get_current_user` (HTTPBearer → JWT decode → User lookup) + `CurrentUser` alias.
+- `alembic/env.py` — `target_metadata = Base.metadata` wired for autogenerate from Phase 4+.
+- `alembic/versions/0002_users.py` — creates `plan` enum (idempotent DO block) + `users` table + unique index on email.
+- `tests/test_auth.py` — 15 auth tests covering all 4 endpoints, happy + sad paths.
+
+**Fixes applied during this phase:**
+- `passlib 1.7.x` is incompatible with `bcrypt 4+/5+` — replaced with direct `bcrypt` library; removed passlib from deps.
+- `sa.Enum` ignores `create_type=False` — switched migration to `sqlalchemy.dialects.postgresql.ENUM`.
+- `email-validator` rejects reserved TLDs (`.test`, `.local`) — test emails use `@acme.com`.
+- FastAPI 0.115+ `HTTPBearer` returns 401 (not 403) for missing credentials — test updated.
+
+**Verification:** `alembic upgrade head` ✅ · `pytest -q` → 19 passed ✅
+
+**Next milestone:** Phase 4 — Profile settings domain (skills, projects, experiences, niches, preferences CRUD).
+
+---
+
 ## 2026-05-19 — Phase 2: FastAPI core + Postgres migrations
 
 **Scope:** async DB engine wiring, Alembic init, pgvector baseline migration, security helpers.

@@ -14,7 +14,7 @@
 - `[!] BLOCKED` — waiting on external input (note the blocker)
 
 ## Current pointer
-**Next phase to start:** **Phase 3 — Auth + user/plan models**
+**Next phase to start:** **Phase 4 — Profile settings domain**
 
 When you (Claude) resume:
 1. Read this file's "Current pointer" line.
@@ -53,7 +53,7 @@ When you (Claude) resume:
 
 ---
 
-## Phase 3 — Auth + user/plan models  `[ ] TODO`
+## Phase 3 — Auth + user/plan models  `[x] DONE` (2026-05-19)
 **Scope:**
 - `app/models/user.py` — `User`, `Plan` enum (free/pro/team), audit timestamps
 - `app/schemas/auth.py`, `app/schemas/user.py`

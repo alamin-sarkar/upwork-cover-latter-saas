@@ -22,8 +22,10 @@ _async_url = _settings.database_url.replace(
 )
 config.set_main_option("sqlalchemy.url", _async_url)
 
-# target_metadata is None for now; populated from Phase 3+ as models are added.
-target_metadata = None
+# Import all models so their tables are registered in Base.metadata.
+from app.models import Base  # noqa: E402
+
+target_metadata = Base.metadata
 
 
 def run_migrations_offline() -> None:
