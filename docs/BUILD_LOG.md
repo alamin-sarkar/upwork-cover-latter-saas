@@ -22,6 +22,7 @@
   - `tests/test_health.py`, `README.md`
 - Validation:
   - `pytest -q` => `1 passed`
+
 ## 2026-05-19 11:14 (Asia/Dhaka)
 - Completed micro-milestone: Next.js + TypeScript + base auth shell scaffold.
 - Added under `apps/web`:
@@ -34,3 +35,26 @@
   - `npm run build` => pass
 - Next step:
   - Implement JWT auth endpoints and user/plan schema in backend.
+
+## 2026-05-19 11:52 (Asia/Dhaka)
+- Completed planning/doc-alignment milestone for product repositioning.
+- Reframed the project from interview copilot direction to **Upwork Cover Letter AI SaaS**.
+- Updated root planning/agent files:
+  - `README.md`
+  - `AGENTS.md`
+  - `CLAUDE.md`
+  - `MEMORY.md`
+  - `docs/MASTER_PLAN.md`
+  - `docs/plans/2026-05-19-upwork-cover-letter-saas-implementation-plan.md`
+- Established domain scope for:
+  - structured user profile sections
+  - writing guidelines and sample letters
+  - job-post analysis
+  - multi-structure cover-letter generation
+  - feedback memory and history
+  - MCP integration
+- Validation:
+  - reviewed repository state
+  - ensured doc changes are additive and do not disturb in-progress auth backend files
+- Next step:
+  - Finish backend auth milestone already in progress before building profile/settings domain.

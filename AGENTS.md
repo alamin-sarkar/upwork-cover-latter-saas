@@ -1,32 +1,54 @@
 # AGENTS.md — Execution Protocol
 
 ## Objective
-Deliver a top-notch, production-ready Interview Copilot SaaS end-to-end, incrementally.
+Build a production-grade Upwork Cover Letter AI SaaS incrementally, with each run completing one safe, reviewable micro-milestone.
+
+## Product Scope
+The product analyzes an Upwork job post, matches it with a user's structured profile and memory, and generates multiple personalized cover-letter variants plus guidance.
 
 ## Hard Rules
-1. Never do too much in one run (respect execution/time limits).
+1. Never do too much in one run.
 2. Complete exactly one scoped milestone per run.
-3. Every run must end with:
+3. Always preserve existing working functionality.
+4. End every milestone with:
    - passing tests for touched scope,
-   - updated docs/changelog,
-   - a git commit.
-4. No fake implementations, no dead code, no TODO placeholders for core paths.
-5. Keep application_app untouched (critical external system rule).
+   - updated docs/build log,
+   - clean `git status --short` review,
+   - a focused git commit.
+5. Do not touch `application_app`.
+6. Do not replace production-grade logic with mock placeholders on core paths.
+7. Prefer additive, reversible changes over sweeping refactors.
 
 ## Architecture Targets
 - FE: Next.js + TypeScript + React
 - BE: FastAPI + PostgreSQL
 - AI: LangChain + LangGraph
+- Retrieval/Memory: PostgreSQL + pgvector, optional RAG only where it adds measurable value
 - Async: Redis + Celery
-- Observability: structured logs + health checks
+- Integration: MCP-compatible endpoints/tools for external AI platforms
+- Observability: structured logs, health checks, request tracing hooks
 
 ## Work Cadence
-- Break work into micro-milestones (60–180 min each)
+- Break work into micro-milestones sized for 60–180 minutes
+- Keep milestone scope narrow enough to test thoroughly
 - Validate before commit
-- Prefer reversible changes
+- Update `MEMORY.md` when a stable project convention changes
+- Record completed milestone notes in `docs/BUILD_LOG.md`
 
 ## Definition of Done (per milestone)
-- Tests added/updated and passing
-- Lint/type checks pass for affected modules
-- API contracts documented if changed
-- Commit message follows conventional commits
+- Tests added/updated for the touched area and passing
+- Lint/type checks pass for touched modules
+- Docs updated if contracts, flows, or behavior changed
+- No accidental artifacts staged (`.venv`, `.next`, caches, build output)
+- Commit message uses conventional commits
+
+## Current Preferred Build Order
+1. Backend auth completion
+2. User profile domain (skills, projects, professional summary, writing settings)
+3. Cover-letter guideline and sample library
+4. Job post ingestion + analysis pipeline
+5. Cover-letter generation graph with multiple structures
+6. History, feedback memory, and iterative improvement loop
+7. Frontend dashboard and workflow screens
+8. MCP integration surface
+9. Reliability, billing/usage limits, admin tools, deployment hardening
