@@ -1,5 +1,21 @@
 # Build Log
 
+## 2026-05-19 16:02 (Asia/Dhaka) — Provider Layer Hardening (Model Mapping + Strict Schema + Telemetry + Health Check)
+- Upgraded `apps/api/app/services/cover_letter_graph.py` with production-oriented provider hardening:
+  - Added provider-specific default model mapping (`openrouter`, `groq`, `gemini`) via `PROVIDER_MODEL_MAP`.
+  - Added secure provider specs + lightweight health checks (`missing/invalid key`, invalid URL).
+  - Added sanitized error handling so API keys are never leaked in telemetry/error strings.
+  - Added strict output schema validation (`LLMOutputSchema`) for deterministic JSON contract.
+  - Added deterministic parser recovery path when malformed/non-conformant LLM output appears.
+  - Added structured fallback telemetry (`attempted`, `failures`, `selected_provider`, `fallback`, `parser_recovery`).
+- Extended `apps/api/tests/test_cover_letter.py`:
+  - `test_provider_health_check_and_model_mapping`
+  - `test_strict_schema_parser_deterministic_recovery`
+- Validation:
+  - `uv run pytest -q` (workdir: `apps/api`) → `24 passed, 1 warning`.
+- Notes:
+  - passlib `crypt` deprecation warning remains non-blocking and pre-existing.
+
 ## 2026-05-19 11:02 (Asia/Dhaka)
 - Completed micro-milestone: Monorepo skeleton setup.
 - Created directories:

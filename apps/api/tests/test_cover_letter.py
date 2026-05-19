@@ -9,6 +9,7 @@ from sqlalchemy.pool import StaticPool
 from app.core.db import Base
 from app.core.deps import get_db
 from app.main import app
+from app.services import cover_letter_graph as graph_service
 
 SQLALCHEMY_TEST_DATABASE_URL = "sqlite://"
 engine = create_engine(SQLALCHEMY_TEST_DATABASE_URL, connect_args={"check_same_thread": False}, poolclass=StaticPool)
@@ -187,3 +188,37 @@ def test_provider_fallback_error_safe_contract(client: TestClient) -> None:
     assert len(data) == 3
     assert all(item["analysis_summary"] for item in data)
     assert all(item["draft_text"] for item in data)
+
+
+def test_provider_health_check_and_model_mapping() -> None:
+    specs = graph_service._provider_candidates()
+    assert specs[0].name in {"openrouter", "groq", "gemini", "mock"}
+    non_mock = [s for s in specs if s.name != "mock"]
+    assert all(s.model for s in non_mock)
+
+    ok, reason = graph_service._provider_health_check(non_mock[0])
+    if ok:
+        assert reason is None
+    else:
+        assert "API_KEY" in reason or "invalid" in reason
+
+
+def test_strict_schema_parser_deterministic_recovery() -> None:
+    state = {
+        "job_title": "Need FastAPI dev",
+        "raw_text": "x",
+        "headline": "Engineer",
+        "guideline_text": "Be concise",
+        "tone_hint": "professional",
+        "preference_note": "",
+        "structure": "direct-value",
+        "analysis_summary": "",
+        "draft_text": "",
+        "prompt_text": "",
+        "llm_raw_output": '{"analysis_summary": 42, "draft_text": null}',
+        "telemetry": {},
+    }
+    out = graph_service._parse_output(state)
+    assert out["analysis_summary"].startswith("Analyze:")
+    assert out["draft_text"]
+    assert out["telemetry"].get("parser_recovery") is True
