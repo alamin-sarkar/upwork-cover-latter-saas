@@ -1,3 +1,5 @@
+import uuid
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -5,12 +7,14 @@ from sqlalchemy.orm import Session
 from app.core.deps import get_current_user, get_db
 from app.models import CoverLetterFeedback, CoverLetterGeneration, CoverLetterJobPost, Profile, ProfileGuideline, ProfileSample, User
 from app.services.cover_letter_graph import run_cover_letter_graph
+from app.services.job_analysis import analyze_job_post
 from app.schemas.cover_letter import (
     CoverLetterFeedbackCreate,
     CoverLetterFeedbackRead,
     CoverLetterMemorySignalRead,
     CoverLetterVariantRead,
     GenerateCoverLetterRequest,
+    JobAnalysisRead,
     JobPostCreate,
     JobPostRead,
 )
@@ -31,6 +35,50 @@ def create_job_post(payload: JobPostCreate, current_user: User = Depends(get_cur
 def list_job_posts(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     rows = db.scalars(select(CoverLetterJobPost).where(CoverLetterJobPost.user_id == current_user.id).order_by(CoverLetterJobPost.created_at.desc())).all()
     return [JobPostRead.model_validate(x) for x in rows]
+
+
+@router.post("/job-posts/{job_post_id}/analyze", response_model=JobAnalysisRead)
+def analyze_job_post_endpoint(job_post_id: uuid.UUID, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    job = db.scalar(select(CoverLetterJobPost).where(CoverLetterJobPost.id == job_post_id, CoverLetterJobPost.user_id == current_user.id))
+    if not job:
+        raise HTTPException(status_code=404, detail="Job post not found")
+
+    profile = db.scalar(select(Profile).where(Profile.user_id == current_user.id))
+    headline = profile.headline if profile else "Freelancer"
+    guidelines = db.scalars(select(ProfileGuideline).where(ProfileGuideline.profile_id == profile.id).order_by(ProfileGuideline.priority.asc())).all() if profile else []
+    skills = [x.name for x in getattr(profile, "skills", [])] if profile else []
+    guideline_text = "; ".join([g.title for g in guidelines[:3]]) or "Be concise and value-focused"
+
+    result = analyze_job_post(
+        title=job.title,
+        raw_text=job.raw_text,
+        headline=headline,
+        guideline_text=guideline_text,
+        profile_skills=skills,
+    )
+    job.analysis_snapshot = {
+        "required_skills": result.required_skills,
+        "deliverables": result.deliverables,
+        "urgency": result.urgency,
+        "budget_clue": result.budget_clue,
+        "risk_flags": result.risk_flags,
+        "evidence": result.evidence,
+        "summary": result.summary,
+    }
+    job.fit_score = result.fit_score
+    db.add(job)
+    db.commit()
+
+    return JobAnalysisRead(
+        required_skills=result.required_skills,
+        deliverables=result.deliverables,
+        urgency=result.urgency,
+        budget_clue=result.budget_clue,
+        risk_flags=result.risk_flags,
+        fit_score=result.fit_score,
+        evidence=result.evidence,
+        summary=result.summary,
+    )
 
 
 @router.post("/generate", response_model=list[CoverLetterVariantRead])
@@ -62,6 +110,25 @@ def generate_cover_letters(payload: GenerateCoverLetterRequest, current_user: Us
         else:
             preference_note = "User feedback trend: make letters more specific and concise."
 
+    profile_skills = [x.name for x in getattr(profile, "skills", [])] if profile else []
+    analyzed = analyze_job_post(
+        title=job.title,
+        raw_text=job.raw_text,
+        headline=headline,
+        guideline_text=guideline_text,
+        profile_skills=profile_skills,
+    )
+    job.analysis_snapshot = {
+        "required_skills": analyzed.required_skills,
+        "deliverables": analyzed.deliverables,
+        "urgency": analyzed.urgency,
+        "budget_clue": analyzed.budget_clue,
+        "risk_flags": analyzed.risk_flags,
+        "evidence": analyzed.evidence,
+        "summary": analyzed.summary,
+    }
+    job.fit_score = analyzed.fit_score
+
     structures = ["direct-value", "problem-solution", "story-proof"]
 
     out = []
@@ -72,7 +139,7 @@ def generate_cover_letters(payload: GenerateCoverLetterRequest, current_user: Us
             headline=headline,
             guideline_text=guideline_text,
             tone_hint=sample_hint,
-            preference_note=preference_note,
+            preference_note=f"{preference_note} Fit: {analyzed.fit_score}/100. Risks: {', '.join(analyzed.risk_flags) if analyzed.risk_flags else 'none'}.",
             structure=structure,
         )
         row = CoverLetterGeneration(

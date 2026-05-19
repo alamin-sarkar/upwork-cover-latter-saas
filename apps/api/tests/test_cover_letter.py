@@ -190,6 +190,48 @@ def test_provider_fallback_error_safe_contract(client: TestClient) -> None:
     assert all(item["draft_text"] for item in data)
 
 
+def test_job_analysis_endpoint_and_snapshot(client: TestClient) -> None:
+    access_token = _register_and_get_token(client)
+    headers = {"Authorization": f"Bearer {access_token}"}
+
+    profile = client.put(
+        "/api/v1/profile",
+        headers=headers,
+        json={"headline": "FastAPI & LangGraph Engineer", "professional_summary": "I build AI SaaS"},
+    )
+    assert profile.status_code == 200
+
+    _ = client.post(
+        "/api/v1/profile/skills",
+        headers=headers,
+        json={"name": "FastAPI", "proficiency": "advanced", "years_experience": 4},
+    )
+
+    job = client.post(
+        "/api/v1/cover-letter/job-posts",
+        headers=headers,
+        json={
+            "title": "Need FastAPI + LangGraph developer",
+            "raw_text": "Urgent: build and deploy proposal automation using FastAPI, LangGraph and PostgreSQL. Budget $500-$900.",
+            "source": "upwork",
+        },
+    )
+    assert job.status_code == 201
+    job_id = job.json()["id"]
+
+    analyzed = client.post(f"/api/v1/cover-letter/job-posts/{job_id}/analyze", headers=headers)
+    assert analyzed.status_code == 200
+    data = analyzed.json()
+    assert "fastapi" in [x.lower() for x in data["required_skills"]]
+    assert data["fit_score"] >= 30
+    assert data["urgency"] in {"high", "medium", "normal"}
+
+    posts = client.get("/api/v1/cover-letter/job-posts", headers=headers)
+    assert posts.status_code == 200
+    assert posts.json()[0]["fit_score"] is not None
+    assert posts.json()[0]["analysis_snapshot"] is not None
+
+
 def test_provider_health_check_and_model_mapping() -> None:
     specs = graph_service._provider_candidates()
     assert specs[0].name in {"openrouter", "groq", "gemini", "mock"}

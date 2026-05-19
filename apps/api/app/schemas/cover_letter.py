@@ -16,6 +16,19 @@ class JobPostRead(BaseModel):
     title: str
     raw_text: str
     source: str
+    fit_score: int | None = None
+    analysis_snapshot: dict | None = None
+
+
+class JobAnalysisRead(BaseModel):
+    required_skills: list[str]
+    deliverables: list[str]
+    urgency: str
+    budget_clue: str
+    risk_flags: list[str]
+    fit_score: int
+    evidence: list[str]
+    summary: str
 
 
 class GenerateCoverLetterRequest(BaseModel):

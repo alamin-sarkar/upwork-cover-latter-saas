@@ -1,5 +1,14 @@
 # Build Log
 
+## 2026-05-19 15:38 (Asia/Dhaka) — Job analysis intelligence hardening
+- Added deterministic job-analysis service: `apps/api/app/services/job_analysis.py`.
+- Added structured analysis fields on job post model: `analysis_snapshot` (JSON) and `fit_score`.
+- Added API endpoint: `POST /api/v1/cover-letter/job-posts/{job_post_id}/analyze`.
+- Generation flow now computes and persists job analysis, then injects fit/risk signals into prompt preference note.
+- Added migration: `apps/api/alembic/versions/0007_job_analysis_snapshot.py`.
+- Extended schemas and tests (`test_job_analysis_endpoint_and_snapshot`).
+- Validation: `.venv/bin/python -m pytest -q` → `25 passed, 1 warning`.
+
 ## 2026-05-19 16:02 (Asia/Dhaka) — Provider Layer Hardening (Model Mapping + Strict Schema + Telemetry + Health Check)
 - Upgraded `apps/api/app/services/cover_letter_graph.py` with production-oriented provider hardening:
   - Added provider-specific default model mapping (`openrouter`, `groq`, `gemini`) via `PROVIDER_MODEL_MAP`.
