@@ -3,20 +3,13 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "PitchCraft — AI Cover Letters for Upwork",
-  description:
-    "Paste an Upwork job post, get a personalized cover letter backed by your profile, samples, and writing rules.",
+  description: "Paste an Upwork job post, get a personalized cover letter backed by your profile.",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="dark">
-      <body className="min-h-screen bg-bg-base text-ink-primary antialiased">
-        {children}
-      </body>
+    <html lang="en">
+      <body>{children}</body>
     </html>
   );
 }
