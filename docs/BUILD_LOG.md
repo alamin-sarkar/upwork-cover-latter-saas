@@ -145,3 +145,29 @@
   - `.venv/bin/python -m pytest -q` => `17 passed`
 - Next step:
   - Start cover-letter generation engine scaffold (job ingestion + prompt orchestration + history linkage).
+
+## 2026-05-19 15:05 (Asia/Dhaka)
+- Completed micro-milestone: cover-letter generation engine scaffold.
+- Added new cover-letter domain:
+  - `app/models/cover_letter.py` with:
+    - `CoverLetterJobPost`
+    - `CoverLetterGeneration`
+- Added cover-letter API routes:
+  - `POST /api/v1/cover-letter/job-posts`
+  - `GET /api/v1/cover-letter/job-posts`
+  - `POST /api/v1/cover-letter/generate`
+  - `GET /api/v1/cover-letter/history`
+- Added schema contracts:
+  - `app/schemas/cover_letter.py`
+- Wired router into API bootstrap:
+  - `app/api/routes/__init__.py`
+  - `app/api/__init__.py`
+  - `app/main.py`
+- Added migration:
+  - `alembic/versions/0005_cover_letter_engine_scaffold.py`
+- Added scaffold test coverage:
+  - `tests/test_cover_letter.py` (job post create → generate 3 variants → history listing)
+- Validation:
+  - `.venv/bin/python -m pytest -q` => `18 passed`
+- Next step:
+  - feedback-memory loop (user feedback on generated letter + apply preference signals in next generations).
