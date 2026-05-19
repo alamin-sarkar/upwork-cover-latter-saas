@@ -69,3 +69,42 @@ def test_cover_letter_engine_scaffold_flow(client: TestClient) -> None:
     history = client.get("/api/v1/cover-letter/history", headers=headers)
     assert history.status_code == 200
     assert len(history.json()) >= 3
+
+def test_feedback_memory_loop_applies_signal(client: TestClient) -> None:
+    access_token = _register_and_get_token(client)
+    headers = {"Authorization": f"Bearer {access_token}"}
+
+    job = client.post(
+        "/api/v1/cover-letter/job-posts",
+        headers=headers,
+        json={
+            "title": "Need FastAPI expert",
+            "raw_text": "Need someone who can build robust APIs quickly with clear communication and concrete milestones.",
+            "source": "upwork",
+        },
+    )
+    assert job.status_code == 201
+    job_id = job.json()["id"]
+
+    first_generation = client.post("/api/v1/cover-letter/generate", headers=headers, json={"job_post_id": job_id})
+    assert first_generation.status_code == 200
+    generation_id = first_generation.json()[0]["id"]
+
+    feedback = client.post(
+        "/api/v1/cover-letter/feedback",
+        headers=headers,
+        json={"generation_id": generation_id, "rating": 2, "feedback_text": "Too generic. Make it concise and specific."},
+    )
+    assert feedback.status_code == 201
+
+    memory_signal = client.get("/api/v1/cover-letter/memory-signal", headers=headers)
+    assert memory_signal.status_code == 200
+    signal = memory_signal.json()
+    assert signal["avg_rating"] == 2.0
+    assert signal["preferred_tone"] == "concise"
+    assert "shorter-letters" in signal["do_more"]
+    assert "generic-lines" in signal["avoid"]
+
+    second_generation = client.post("/api/v1/cover-letter/generate", headers=headers, json={"job_post_id": job_id})
+    assert second_generation.status_code == 200
+    assert "make letters more specific and concise" in second_generation.json()[0]["analysis_summary"].lower()

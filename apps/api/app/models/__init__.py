@@ -1,4 +1,4 @@
-from app.models.cover_letter import CoverLetterGeneration, CoverLetterJobPost
+from app.models.cover_letter import CoverLetterFeedback, CoverLetterGeneration, CoverLetterJobPost
 from app.models.profile import (
     Profile,
     ProfileCustomSection,
@@ -23,4 +23,5 @@ __all__ = [
     "ProfileSample",
     "CoverLetterJobPost",
     "CoverLetterGeneration",
+    "CoverLetterFeedback",
 ]

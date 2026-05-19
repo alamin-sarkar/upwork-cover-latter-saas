@@ -171,3 +171,20 @@
   - `.venv/bin/python -m pytest -q` => `18 passed`
 - Next step:
   - feedback-memory loop (user feedback on generated letter + apply preference signals in next generations).
+
+## 2026-05-19 15:15 (Asia/Dhaka)
+- Completed micro-milestone: feedback-memory loop.
+- Added feedback persistence for cover-letter generations:
+  - new model: `CoverLetterFeedback`
+  - new migration: `alembic/versions/0006_cover_letter_feedback_memory.py`
+- Added new APIs:
+  - `POST /api/v1/cover-letter/feedback`
+  - `GET /api/v1/cover-letter/memory-signal`
+- Updated generation logic to read recent feedback trend and include preference guidance in analysis summary.
+- Extended schemas for feedback and memory-signal contracts.
+- Added test coverage:
+  - `test_feedback_memory_loop_applies_signal` in `tests/test_cover_letter.py`
+- Validation:
+  - `.venv/bin/python -m pytest -q` => `19 passed`
+- Next step:
+  - LangChain/LangGraph-based prompt orchestration module (replace scaffold text with graph-driven generation).

@@ -3,8 +3,16 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_user, get_db
-from app.models import CoverLetterGeneration, CoverLetterJobPost, Profile, ProfileGuideline, ProfileSample, User
-from app.schemas.cover_letter import CoverLetterVariantRead, GenerateCoverLetterRequest, JobPostCreate, JobPostRead
+from app.models import CoverLetterFeedback, CoverLetterGeneration, CoverLetterJobPost, Profile, ProfileGuideline, ProfileSample, User
+from app.schemas.cover_letter import (
+    CoverLetterFeedbackCreate,
+    CoverLetterFeedbackRead,
+    CoverLetterMemorySignalRead,
+    CoverLetterVariantRead,
+    GenerateCoverLetterRequest,
+    JobPostCreate,
+    JobPostRead,
+)
 
 router = APIRouter(prefix="/api/v1/cover-letter", tags=["cover-letter"])
 
@@ -39,6 +47,20 @@ def generate_cover_letters(payload: GenerateCoverLetterRequest, current_user: Us
     guideline_text = "; ".join([g.title for g in guidelines[:3]]) or "Be concise and value-focused"
     sample_hint = samples[0].tone if samples else "professional"
 
+    recent_feedback = db.scalars(
+        select(CoverLetterFeedback)
+        .where(CoverLetterFeedback.user_id == current_user.id)
+        .order_by(CoverLetterFeedback.created_at.desc())
+        .limit(10)
+    ).all()
+    preference_note = ""
+    if recent_feedback:
+        avg_rating = sum(x.rating for x in recent_feedback) / len(recent_feedback)
+        if avg_rating >= 4:
+            preference_note = "User feedback trend: keep current style."
+        else:
+            preference_note = "User feedback trend: make letters more specific and concise."
+
     variants = [
         ("direct-value", f"Analyze: {job.title}. Priorities: {guideline_text}", f"Hi, I noticed your {job.title} project. I'm {headline} and can deliver quickly with clear milestones."),
         ("problem-solution", f"Analyze: {job.title}. Priorities: {guideline_text}", f"Your requirement suggests immediate execution needs. As {headline}, I can design and ship a reliable solution end-to-end."),
@@ -51,7 +73,7 @@ def generate_cover_letters(payload: GenerateCoverLetterRequest, current_user: Us
             user_id=current_user.id,
             job_post_id=job.id,
             structure=structure,
-            analysis_summary=f"{analysis_summary}. Tone hint: {sample_hint}",
+            analysis_summary=f"{analysis_summary}. Tone hint: {sample_hint}. {preference_note}".strip(),
             draft_text=draft_text,
         )
         db.add(row)
@@ -67,3 +89,53 @@ def generate_cover_letters(payload: GenerateCoverLetterRequest, current_user: Us
 def list_generation_history(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     rows = db.scalars(select(CoverLetterGeneration).where(CoverLetterGeneration.user_id == current_user.id).order_by(CoverLetterGeneration.created_at.desc())).all()
     return [CoverLetterVariantRead.model_validate(x) for x in rows]
+
+
+@router.post("/feedback", response_model=CoverLetterFeedbackRead, status_code=status.HTTP_201_CREATED)
+def submit_feedback(payload: CoverLetterFeedbackCreate, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    generation = db.scalar(
+        select(CoverLetterGeneration).where(
+            CoverLetterGeneration.id == payload.generation_id,
+            CoverLetterGeneration.user_id == current_user.id,
+        )
+    )
+    if not generation:
+        raise HTTPException(status_code=404, detail="Generation not found")
+
+    row = CoverLetterFeedback(
+        user_id=current_user.id,
+        generation_id=generation.id,
+        rating=payload.rating,
+        feedback_text=payload.feedback_text,
+    )
+    db.add(row)
+    db.commit()
+    db.refresh(row)
+    return CoverLetterFeedbackRead.model_validate(row)
+
+
+@router.get("/memory-signal", response_model=CoverLetterMemorySignalRead)
+def get_memory_signal(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    rows = db.scalars(
+        select(CoverLetterFeedback)
+        .where(CoverLetterFeedback.user_id == current_user.id)
+        .order_by(CoverLetterFeedback.created_at.desc())
+        .limit(20)
+    ).all()
+    if not rows:
+        return CoverLetterMemorySignalRead(avg_rating=None, preferred_tone=None, do_more=[], avoid=[])
+
+    avg_rating = sum(x.rating for x in rows) / len(rows)
+    preferred_tone = "professional" if avg_rating >= 4 else "concise"
+
+    text_blob = " ".join([(x.feedback_text or "").lower() for x in rows])
+    do_more = []
+    avoid = []
+    if "specific" in text_blob or "specifics" in text_blob:
+        do_more.append("more-specific-outcomes")
+    if "short" in text_blob or "concise" in text_blob:
+        do_more.append("shorter-letters")
+    if "generic" in text_blob:
+        avoid.append("generic-lines")
+
+    return CoverLetterMemorySignalRead(avg_rating=avg_rating, preferred_tone=preferred_tone, do_more=do_more, avoid=avoid)

@@ -29,3 +29,25 @@ class CoverLetterVariantRead(BaseModel):
     structure: str
     analysis_summary: str
     draft_text: str
+
+
+class CoverLetterFeedbackCreate(BaseModel):
+    generation_id: uuid.UUID
+    rating: int = Field(ge=1, le=5)
+    feedback_text: str | None = Field(default=None, max_length=3000)
+
+
+class CoverLetterFeedbackRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    generation_id: uuid.UUID
+    rating: int
+    feedback_text: str | None
+
+
+class CoverLetterMemorySignalRead(BaseModel):
+    avg_rating: float | None
+    preferred_tone: str | None
+    do_more: list[str]
+    avoid: list[str]
