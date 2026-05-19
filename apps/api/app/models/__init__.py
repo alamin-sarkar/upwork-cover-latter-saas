@@ -1,4 +1,19 @@
-from app.models.profile import Profile, ProfileSkill
+from app.models.profile import (
+    Profile,
+    ProfileCustomSection,
+    ProfileProfessionalLife,
+    ProfileProject,
+    ProfileSkill,
+)
 from app.models.user import User, UserPlan, UserRole
 
-__all__ = ["User", "UserPlan", "UserRole", "Profile", "ProfileSkill"]
+__all__ = [
+    "User",
+    "UserPlan",
+    "UserRole",
+    "Profile",
+    "ProfileSkill",
+    "ProfileProject",
+    "ProfileProfessionalLife",
+    "ProfileCustomSection",
+]

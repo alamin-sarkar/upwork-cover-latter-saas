@@ -103,3 +103,27 @@
   - `.venv/bin/python -m pytest -q` => `12 passed`
 - Next step:
   - Extend settings domain with projects/professional-life/custom sections and CRUD APIs.
+
+## 2026-05-19 14:05 (Asia/Dhaka)
+- Completed micro-milestone: projects + professional-life + custom sections CRUD APIs.
+- Extended profile settings backend under `apps/api`:
+  - `app/models/profile.py` with new entities:
+    - `ProfileProject`
+    - `ProfileProfessionalLife`
+    - `ProfileCustomSection`
+  - `app/schemas/profile.py` with create/read schemas for all three sections
+  - `app/api/routes/profile.py` with authenticated endpoints:
+    - Projects: `GET/POST/DELETE /api/v1/profile/projects`
+    - Professional life: `GET/POST/DELETE /api/v1/profile/professional-life`
+    - Custom sections: `GET/POST/DELETE /api/v1/profile/custom-sections`
+- Export updates:
+  - `app/models/__init__.py`
+  - `app/schemas/__init__.py`
+- Added migration:
+  - `alembic/versions/0003_profile_projects_professional_custom_sections.py`
+- Expanded API tests:
+  - `tests/test_profile.py` now covers CRUD flow for projects, professional-life entries, and custom sections
+- Validation:
+  - `.venv/bin/python -m pytest -q` => `15 passed`
+- Next step:
+  - Add update endpoints for these sections and start guideline/sample library module.
