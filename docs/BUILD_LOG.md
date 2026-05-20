@@ -4,6 +4,24 @@ Append a dated entry per completed milestone. Newest at the top.
 
 ---
 
+## 2026-05-20 — Phase 5: Guidelines and sample library domain
+
+**Scope:** authenticated CRUD for a user-owned cover-letter playbook with reusable rules, intros, CTAs, tone presets, and tagged sample letters.
+
+**Delivered:**
+- `app/models/library.py` — `CoverLetterGuideline` and `CoverLetterSample` ORM models with direct user ownership, ordering, and audit timestamps.
+- `app/schemas/library.py` — typed request/response contracts, including validated guideline types (`rule`, `intro`, `cta`, `tone_preset`) and sample tags (`winning`, `anti-pattern`).
+- `app/api/routes/library.py` — authenticated CRUD for guidelines and samples, plus list filtering by `guideline_type` and `tag`.
+- `app/api/router.py` + `app/models/__init__.py` — registered the library routes and exported the new models for metadata discovery.
+- `alembic/versions/0004_library.py` — creates the `cover_letter_guidelines` and `cover_letter_samples` tables with ownership indexes, `ON DELETE CASCADE`, and check constraints for valid type/tag values.
+- `tests/test_library.py` — CRUD, invalid payload, filter, and ownership-isolation coverage for the new domain.
+
+**Verification:** `uv run alembic upgrade head` ✅ · `uv run ruff check app tests` ✅ · `uv run pytest -q` → 46 passed ✅
+
+**Next milestone:** Phase 6 — Job post ingestion + structured analysis.
+
+---
+
 ## 2026-05-20 — Phase 4: Profile settings domain
 
 **Scope:** normalized profile aggregate, user-scoped CRUD, migration, and ownership tests.

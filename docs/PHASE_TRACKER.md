@@ -14,7 +14,7 @@
 - `[!] BLOCKED` — waiting on external input (note the blocker)
 
 ## Current pointer
-**Next phase to start:** **Phase 5 — Guidelines / sample library domain**
+**Next phase to start:** **Phase 6 — Job post ingestion + structured analysis**
 
 When you (Claude) resume:
 1. Read this file's "Current pointer" line.
@@ -70,7 +70,7 @@ When you (Claude) resume:
 
 ---
 
-## Phase 5 — Guidelines / sample library domain  `[ ] TODO`
+## Phase 5 — Guidelines / sample library domain  `[x] DONE` (2026-05-20)
 **Scope:** `cover_letter_guidelines`, `cover_letter_samples` (with tags: winning / anti-pattern), reusable intros/CTAs, tone presets. CRUD + tests.
 **Acceptance:** user can manage guidelines and samples; samples support tagging; tests cover ownership.
 
