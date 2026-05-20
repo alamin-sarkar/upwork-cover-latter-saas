@@ -5,6 +5,7 @@ description = "FastAPI backend for the Upwork Cover Letter AI SaaS"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "ai-workflows",
     "fastapi>=0.115",
     "uvicorn[standard]>=0.32",
     "pydantic>=2.9",
@@ -41,6 +42,9 @@ target-version = "py311"
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+
+[tool.uv.sources]
+ai-workflows = { path = "../../packages/ai-workflows" }
 
 [build-system]
 requires = ["hatchling"]

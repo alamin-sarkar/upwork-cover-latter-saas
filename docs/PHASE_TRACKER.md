@@ -14,7 +14,7 @@
 - `[!] BLOCKED` — waiting on external input (note the blocker)
 
 ## Current pointer
-**Next phase to start:** **Phase 6 — Job post ingestion + structured analysis**
+**Next phase to start:** **Phase 7 — Cover-letter generation graph**
 
 When you (Claude) resume:
 1. Read this file's "Current pointer" line.
@@ -76,7 +76,7 @@ When you (Claude) resume:
 
 ---
 
-## Phase 6 — Job post ingestion + structured analysis  `[ ] TODO`
+## Phase 6 — Job post ingestion + structured analysis  `[x] DONE` (2026-05-20)
 **Scope:**
 - `packages/ai-workflows/src/ai_workflows/job_analysis/` — prompts, Pydantic schemas, LangGraph node
 - `app/services/job_analysis.py` — orchestrator using Anthropic SDK

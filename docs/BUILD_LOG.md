@@ -4,6 +4,25 @@ Append a dated entry per completed milestone. Newest at the top.
 
 ---
 
+## 2026-05-20 — Phase 6: Job post ingestion and structured analysis
+
+**Scope:** shared job-analysis workflow contract, Anthropic-backed structured extraction, persisted audit snapshots, and an authenticated analysis endpoint.
+
+**Delivered:**
+- `packages/ai-workflows/src/ai_workflows/job_analysis/` — prompt versioning, structured `JobAnalysis` schema, and a small LangGraph state wrapper for analysis execution.
+- `apps/api/app/models/job_analysis.py` — `JobAnalysisSnapshot` ORM model that stores the raw post, normalized fields, provider metadata, and the full structured payload for auditability.
+- `apps/api/app/services/job_analysis.py` — `JobAnalysisService` orchestrator that calls Anthropic, validates the JSON response against the shared schema, runs through the LangGraph node, and persists the snapshot.
+- `apps/api/app/api/routes/job_analysis.py` + `app/schemas/job_analysis.py` — authenticated `POST /jobs/analyze` request/response contract with clear `503` handling when the provider is not configured.
+- `apps/api/alembic/versions/0005_job_analysis.py` — creates `job_analysis_snapshots` with ownership index and check constraints for `fit_score`, `urgency`, and `tone`.
+- `apps/api/tests/test_job_analysis.py` — mocked-Anthropic coverage proving structured response shape, persistence, and payload validation behavior.
+- `apps/api/pyproject.toml` — wired the local `ai-workflows` package into the API environment as a real dependency instead of a path hack.
+
+**Verification:** `uv sync` ✅ · `uv run alembic upgrade head` ✅ · `uv run ruff check app tests` ✅ · `uv run pytest -q` → 48 passed ✅
+
+**Next milestone:** Phase 7 — Cover-letter generation graph.
+
+---
+
 ## 2026-05-20 — Phase 5: Guidelines and sample library domain
 
 **Scope:** authenticated CRUD for a user-owned cover-letter playbook with reusable rules, intros, CTAs, tone presets, and tagged sample letters.

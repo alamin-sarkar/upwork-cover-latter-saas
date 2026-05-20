@@ -7,6 +7,25 @@ resolution-markers = [
 ]
 
 [[package]]
+name = "ai-workflows"
+version = "0.1.0"
+source = { directory = "../../packages/ai-workflows" }
+dependencies = [
+    { name = "anthropic" },
+    { name = "langchain" },
+    { name = "langgraph" },
+    { name = "pydantic" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "anthropic", specifier = ">=0.39" },
+    { name = "langchain", specifier = ">=0.3" },
+    { name = "langgraph", specifier = ">=0.2.50" },
+    { name = "pydantic", specifier = ">=2.9" },
+]
+
+[[package]]
 name = "alembic"
 version = "1.18.4"
 source = { registry = "https://pypi.org/simple" }
@@ -2029,6 +2048,7 @@ name = "upwork-cover-letter-api"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "ai-workflows" },
     { name = "alembic" },
     { name = "anthropic" },
     { name = "bcrypt" },
@@ -2060,6 +2080,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "ai-workflows", directory = "../../packages/ai-workflows" },
     { name = "alembic", specifier = ">=1.14" },
     { name = "anthropic", specifier = ">=0.39" },
     { name = "bcrypt", specifier = ">=4.0" },
