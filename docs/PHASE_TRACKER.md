@@ -14,7 +14,7 @@
 - `[!] BLOCKED` — waiting on external input (note the blocker)
 
 ## Current pointer
-**Next phase to start:** **Phase 4 — Profile settings domain**
+**Next phase to start:** **Phase 5 — Guidelines / sample library domain**
 
 When you (Claude) resume:
 1. Read this file's "Current pointer" line.
@@ -64,7 +64,7 @@ When you (Claude) resume:
 
 ---
 
-## Phase 4 — Profile settings domain  `[ ] TODO`
+## Phase 4 — Profile settings domain  `[x] DONE` (2026-05-20)
 **Scope:** normalized profile model: `profiles`, `profile_skills`, `profile_projects`, `profile_experiences`, `profile_niches`, `profile_custom_sections`, `profile_preferences`. CRUD routes scoped to the authenticated user. Migrations + tests.
 **Acceptance:** authenticated user can create/read/update/delete each section; cascading deletes work; tests cover ownership isolation.
 

@@ -4,6 +4,27 @@ Append a dated entry per completed milestone. Newest at the top.
 
 ---
 
+## 2026-05-20 — Phase 4: Profile settings domain
+
+**Scope:** normalized profile aggregate, user-scoped CRUD, migration, and ownership tests.
+
+**Delivered:**
+- `app/models/profile.py` — `Profile`, `ProfileSkill`, `ProfileProject`, `ProfileExperience`, `ProfileNiche`, `ProfileCustomSection`, and `ProfilePreferences` ORM models with ordered child relationships and delete cascading.
+- `app/models/user.py` + `app/models/__init__.py` — wired one-to-one user ↔ profile relationship and model exports for Alembic metadata.
+- `app/schemas/profile.py` — Pydantic request/response contracts for the profile aggregate, each section collection, and singleton preferences.
+- `app/api/routes/profile.py` — authenticated CRUD for profile root, skills, projects, experiences, niches, custom sections, and preferences. Child section creation auto-creates the owning profile when needed.
+- `app/api/router.py` — profile routes registered.
+- `alembic/versions/0003_profiles.py` — creates all Phase 4 tables and indexes with `ON DELETE CASCADE` foreign keys.
+- `tests/test_profile.py` — CRUD, validation, ownership isolation, and cascade-delete coverage for the new domain.
+
+**Verification:** `uv run alembic upgrade head` ✅ · `uv run ruff check app tests` ✅ · `uv run pytest -q` → 34 passed ✅
+
+**Notes:** local verification required starting the repo's Docker Postgres/Redis stack from `infra/docker-compose.yml` because nothing was listening on `localhost:5432`.
+
+**Next milestone:** Phase 5 — Guidelines / sample library domain (guidelines, reusable intros/CTAs, tone presets, tagged samples).
+
+---
+
 ## 2026-05-19 — Phase 3: Auth + user/plan models
 
 **Scope:** JWT auth system with register, login, refresh, and me endpoints.
