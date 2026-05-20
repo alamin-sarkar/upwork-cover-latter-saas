@@ -26,6 +26,7 @@ from app.models.generation import CoverLetterGenerationRun, CoverLetterGeneratio
 from app.models.job_analysis import JobAnalysisSnapshot
 from app.models.library import CoverLetterGuideline, CoverLetterSample
 from app.models.profile import Profile
+from app.services.feedback_memory import retrieve_feedback_memory_context
 from app.services.job_analysis import JobAnalysisConfigurationError, JobAnalysisService
 
 StructuredInvoker = Callable[[type[Any]], Any]
@@ -64,6 +65,7 @@ class CoverLetterGenerationService:
             analyze_job=self._analyze_job,
             retrieve_profile=self._retrieve_profile,
             retrieve_library=self._retrieve_library,
+            retrieve_feedback_memory=self._retrieve_feedback_memory,
             draft_variants=self._draft_variants,
             review_variants=self._review_variants,
         )
@@ -89,6 +91,7 @@ class CoverLetterGenerationService:
             "requested_structures": [item.value for item in structures] if structures else None,
             "profile_context": None,
             "library_context": None,
+            "feedback_memory_context": None,
             "drafted_variants": None,
             "final_variants": None,
         }
@@ -260,6 +263,7 @@ class CoverLetterGenerationService:
         analysis = state["analysis"]
         profile_context = state["profile_context"]
         library_context = state["library_context"]
+        feedback_memory_context = state["feedback_memory_context"]
 
         drafted_variants: list[DraftedCoverLetter] = []
         for structure_value in state["requested_structures"]:
@@ -269,6 +273,7 @@ class CoverLetterGenerationService:
                 job_analysis=analysis,
                 profile_context=profile_context,
                 library_context=library_context,
+                feedback_memory_context=feedback_memory_context,
             )
             messages = await prompt.aformat_messages()
             drafted = await self.draft_model_factory(DraftedCoverLetter).ainvoke(messages)
@@ -283,6 +288,7 @@ class CoverLetterGenerationService:
         analysis = state["analysis"]
         profile_context = state["profile_context"]
         library_context = state["library_context"]
+        feedback_memory_context = state["feedback_memory_context"]
         final_variants: list[FinalCoverLetterVariant] = []
 
         for drafted_variant in state["drafted_variants"]:
@@ -291,6 +297,7 @@ class CoverLetterGenerationService:
                 job_analysis=analysis,
                 profile_context=profile_context,
                 library_context=library_context,
+                feedback_memory_context=feedback_memory_context,
             )
             messages = await prompt.aformat_messages()
             reviewed = await self.review_model_factory(CoverLetterReviewResult).ainvoke(messages)
@@ -306,6 +313,24 @@ class CoverLetterGenerationService:
             )
 
         return {"final_variants": final_variants}
+
+    async def _retrieve_feedback_memory(self, state: dict[str, object]) -> dict[str, str]:
+        analysis = state["analysis"]
+        query_text = "\n".join(
+            [
+                state["raw_job_text"] or "",
+                analysis.title,
+                analysis.scope,
+                " ".join(analysis.required_skills),
+            ]
+        )
+        return {
+            "feedback_memory_context": await retrieve_feedback_memory_context(
+                session=self._require_session(),
+                user_id=self._require_user_id(),
+                query_text=query_text,
+            )
+        }
 
     async def _get_analysis_snapshot(self, snapshot_id: uuid.UUID) -> JobAnalysisSnapshot:
         stmt = select(JobAnalysisSnapshot).where(

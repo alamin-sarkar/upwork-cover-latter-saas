@@ -2,8 +2,8 @@ from ai_workflows.generation.schemas import CoverLetterStructure
 from ai_workflows.job_analysis.schemas import JobAnalysis
 from langchain_core.prompts import ChatPromptTemplate
 
-COVER_LETTER_GENERATION_PROMPT_VERSION = "2026-05-20.phase-7.v1"
-COVER_LETTER_REVIEW_PROMPT_VERSION = "2026-05-20.phase-7.review-v1"
+COVER_LETTER_GENERATION_PROMPT_VERSION = "2026-05-20.phase-8.v1"
+COVER_LETTER_REVIEW_PROMPT_VERSION = "2026-05-20.phase-8.review-v1"
 
 STRUCTURE_GUIDANCE: dict[CoverLetterStructure, str] = {
     CoverLetterStructure.concise: (
@@ -30,6 +30,7 @@ def build_cover_letter_draft_prompt(
     job_analysis: JobAnalysis,
     profile_context: str,
     library_context: str,
+    feedback_memory_context: str,
 ) -> ChatPromptTemplate:
     return ChatPromptTemplate.from_messages(
         [
@@ -48,10 +49,12 @@ def build_cover_letter_draft_prompt(
                     "Job analysis:\n{job_analysis}\n\n"
                     "Profile evidence:\n{profile_context}\n\n"
                     "Guidelines and sample context:\n{library_context}\n\n"
+                    "Past feedback memory:\n{feedback_memory_context}\n\n"
                     "Requirements:\n"
                     "- Keep the structure exactly aligned to the requested style.\n"
                     "- Make the body specific to this job.\n"
                     "- Use only profile evidence that is actually supplied.\n"
+                    "- Reuse what past feedback says works and avoid what it says gets rejected.\n"
                     "- Include concise match notes that explain why this variant fits."
                 ),
             ),
@@ -61,6 +64,7 @@ def build_cover_letter_draft_prompt(
         job_analysis=job_analysis.model_dump_json(indent=2),
         profile_context=profile_context,
         library_context=library_context,
+        feedback_memory_context=feedback_memory_context,
     )
 
 
@@ -70,6 +74,7 @@ def build_cover_letter_review_prompt(
     job_analysis: JobAnalysis,
     profile_context: str,
     library_context: str,
+    feedback_memory_context: str,
 ) -> ChatPromptTemplate:
     return ChatPromptTemplate.from_messages(
         [
@@ -89,9 +94,11 @@ def build_cover_letter_review_prompt(
                     "Job analysis:\n{job_analysis}\n\n"
                     "Profile evidence:\n{profile_context}\n\n"
                     "Guidelines and sample context:\n{library_context}\n\n"
+                    "Past feedback memory:\n{feedback_memory_context}\n\n"
                     "Requirements:\n"
                     "- Keep the same requested structure.\n"
                     "- Remove vague claims.\n"
+                    "- Preserve patterns that past feedback accepted and remove patterns it rejected.\n"
                     "- Tighten the CTA if needed.\n"
                     "- Return short self-check notes describing the fixes you made."
                 ),
@@ -102,4 +109,5 @@ def build_cover_letter_review_prompt(
         job_analysis=job_analysis.model_dump_json(indent=2),
         profile_context=profile_context,
         library_context=library_context,
+        feedback_memory_context=feedback_memory_context,
     )

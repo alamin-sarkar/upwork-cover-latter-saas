@@ -14,7 +14,7 @@
 - `[!] BLOCKED` — waiting on external input (note the blocker)
 
 ## Current pointer
-**Next phase to start:** **Phase 8 — Feedback memory + adaptive improvement**
+**Next phase to start:** **Phase 9 — Next.js dashboard + workflow screens**
 
 When you (Claude) resume:
 1. Read this file's "Current pointer" line.
@@ -98,7 +98,7 @@ When you (Claude) resume:
 
 ---
 
-## Phase 8 — Feedback memory + adaptive improvement  `[ ] TODO`
+## Phase 8 — Feedback memory + adaptive improvement  `[x] DONE` (2026-05-20)
 **Scope:** rating, edited final text, accepted/rejected sections, client-response outcome. Feedback is fed back into next-run retrieval (pgvector for relevant past feedback). Tests cover memory recall.
 **Acceptance:** feedback persists and visibly influences the next generation's prompt context.
 

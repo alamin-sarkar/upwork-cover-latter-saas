@@ -9,10 +9,12 @@ from sqlalchemy.orm import selectinload
 
 from app.api.routes import generation as generation_route
 from app.main import app
-from app.models.generation import CoverLetterGenerationRun
+from app.models.feedback import CoverLetterFeedback
+from app.models.generation import CoverLetterGenerationRun, CoverLetterGenerationVariant
 from app.models.job_analysis import JobAnalysisSnapshot
 from app.models.library import CoverLetterGuideline, CoverLetterSample
 from app.models.profile import Profile, ProfilePreferences, ProfileProject, ProfileSkill
+from app.services.feedback_memory import build_feedback_memory_text, embed_text
 from app.services.generation import CoverLetterGenerationService
 
 client = TestClient(app)
@@ -230,7 +232,7 @@ This project is urgent and we want someone who can operate independently.
 
     assert response.status_code == 201
     body = response.json()
-    assert body["prompt_version"] == "2026-05-20.phase-7.v1"
+    assert body["prompt_version"] == "2026-05-20.phase-8.v1"
     assert [item["structure"] for item in body["variants"]] == ["concise", "problem-solution"]
     assert len(body["variants"]) == 2
     assert body["analysis"]["title"] == ANALYSIS.title
@@ -245,7 +247,8 @@ This project is urgent and we want someone who can operate independently.
     assert run.analysis_snapshot_id == uuid.UUID(body["analysis_snapshot_id"])
     assert run.requested_structures == ["concise", "problem-solution"]
     assert run.graph_state["analysis"]["fit_score"] == 88
-    assert run.graph_state["review_prompt_version"] == "2026-05-20.phase-7.review-v1"
+    assert run.graph_state["review_prompt_version"] == "2026-05-20.phase-8.review-v1"
+    assert run.graph_state["feedback_memory_context"] == "No past feedback memory is available yet."
     assert len(run.variants) == 2
     assert run.variants[0].self_check_notes == ["Added a concrete first-step statement"]
     assert len(factory.calls) == 4
@@ -327,3 +330,118 @@ def test_generate_requires_job_text_or_analysis_snapshot():
     headers, _ = _register_user()
     response = client.post("/generate", headers=headers, json={})
     assert response.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_generate_retrieves_relevant_feedback_memory(db_session):
+    headers, user_id = _register_user()
+    await _seed_profile_and_library(db_session, user_id)
+
+    snapshot = JobAnalysisSnapshot(
+        user_id=user_id,
+        raw_job_text="Urgent SaaS dashboard rebuild with React and TypeScript.",
+        title=ANALYSIS.title,
+        scope=ANALYSIS.scope,
+        deliverables=ANALYSIS.deliverables,
+        required_skills=ANALYSIS.required_skills,
+        budget_clues=ANALYSIS.budget_clues,
+        urgency=ANALYSIS.urgency.value,
+        tone=ANALYSIS.tone.value,
+        risk_flags=ANALYSIS.risk_flags,
+        fit_score=ANALYSIS.fit_score,
+        analysis_payload=ANALYSIS.model_dump(mode="json"),
+        provider="anthropic",
+        model_name="claude-test",
+        prompt_version="test-analysis",
+    )
+    prior_run = CoverLetterGenerationRun(
+        user_id=user_id,
+        analysis_snapshot=snapshot,
+        raw_job_text=snapshot.raw_job_text,
+        requested_structures=["concise"],
+        prompt_version="prior-run",
+        graph_state={},
+    )
+    prior_variant = CoverLetterGenerationVariant(
+        structure="concise",
+        headline="Lead with dashboard pain",
+        cover_letter="I would open by naming the reporting bottleneck and the KPI trust issue.",
+        rationale="Pain-first opener converted better.",
+        match_notes=["Pain-led framing"],
+        self_check_notes=[],
+        sort_order=0,
+    )
+    prior_run.variants.append(prior_variant)
+    db_session.add(prior_run)
+    await db_session.flush()
+
+    memory_text = build_feedback_memory_text(
+        variant=prior_variant,
+        rating=5,
+        edited_cover_letter="Start by naming the reporting bottleneck and the KPI trust issue.",
+        accepted_sections=["Lead with the reporting bottleneck"],
+        rejected_sections=["Avoid generic excitement"],
+        client_response_outcome="hired",
+        notes="Pain-first opening with KPI proof converted best.",
+    )
+    db_session.add(
+        CoverLetterFeedback(
+            user_id=user_id,
+            generation_run_id=prior_run.id,
+            generation_variant_id=prior_variant.id,
+            rating=5,
+            edited_cover_letter="Start by naming the reporting bottleneck and the KPI trust issue.",
+            accepted_sections=["Lead with the reporting bottleneck"],
+            rejected_sections=["Avoid generic excitement"],
+            client_response_outcome="hired",
+            notes="Pain-first opening with KPI proof converted best.",
+            memory_text=memory_text,
+            memory_embedding=embed_text(memory_text),
+        )
+    )
+    await db_session.commit()
+
+    factory = FakeStructuredFactory(
+        draft_payloads=[
+            {
+                "structure": "concise",
+                "headline": "Dashboard bottleneck fix",
+                "cover_letter": "I would start by isolating the reporting bottleneck, then rebuild the slowest dashboard flows with measurable KPI proof.",
+                "rationale": "Uses the proven pain-first pattern.",
+                "match_notes": ["Reflects prior winning opener"],
+            }
+        ],
+        review_payloads=[
+            {
+                "structure": "concise",
+                "final_headline": "Dashboard bottleneck fix",
+                "final_cover_letter": "I would start by isolating the reporting bottleneck, then rebuild the slowest dashboard flows with measurable KPI proof and a phased delivery plan.",
+                "final_rationale": "Keeps the proven pain-first opener and strengthens execution detail.",
+                "final_match_notes": ["Pain-first opener", "Execution detail"],
+                "self_check_notes": ["Preserved prior accepted pattern"],
+            }
+        ],
+    )
+
+    original_factory = generation_route.get_cover_letter_generation_service
+    generation_route.get_cover_letter_generation_service = lambda: CoverLetterGenerationService(
+        draft_model_factory=factory,
+        review_model_factory=factory,
+    )
+
+    try:
+        response = client.post(
+            "/generate",
+            headers=headers,
+            json={
+                "analysis_snapshot_id": str(snapshot.id),
+                "structures": ["concise"],
+            },
+        )
+    finally:
+        generation_route.get_cover_letter_generation_service = original_factory
+
+    assert response.status_code == 201
+    draft_messages = "\n".join(factory.calls[0]["messages"])
+    assert "Lead with the reporting bottleneck" in draft_messages
+    assert "Avoid generic excitement" in draft_messages

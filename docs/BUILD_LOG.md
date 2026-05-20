@@ -4,6 +4,22 @@ Append a dated entry per completed milestone. Newest at the top.
 
 ---
 
+## 2026-05-20 — Phase 8: Feedback memory and adaptive improvement
+
+**Scope:** persist post-generation feedback signals, retrieve relevant prior feedback with pgvector-backed memory search, and feed that context into the next cover-letter generation run.
+
+**Delivered:**
+- `apps/api/app/models/feedback.py` + `alembic/versions/0007_feedback_memory.py` — `cover_letter_feedback` table with user ownership, one-feedback-per-variant enforcement, edited final text, accepted/rejected sections, client outcome, and a pgvector embedding column for retrieval.
+- `apps/api/app/api/routes/feedback.py` + `app/schemas/feedback.py` — authenticated feedback endpoints for create, list, get, and update flows under `/history/feedback`.
+- `apps/api/app/services/feedback_memory.py` — deterministic local embedding generation, feedback memory text synthesis, ownership-safe variant lookup, and relevant-memory retrieval ordered by vector cosine distance.
+- `packages/ai-workflows/src/ai_workflows/generation/graph.py` + `generation/prompts.py` — added a feedback-memory retrieval step to the LangGraph workflow and upgraded generation/review prompts so drafts adapt to accepted and rejected patterns from past outcomes.
+- `apps/api/app/services/generation.py` — feedback memory is now injected into every generation run and persisted in the stored graph state for auditability.
+- `apps/api/tests/test_feedback.py` + `tests/test_generation.py` — CRUD coverage for the feedback API, duplicate protection, ownership isolation, and proof that saved feedback memory appears in the next generation prompt context.
+
+**Verification:** `uv run alembic upgrade head` ✅ · `uv run pytest -q tests/test_feedback.py` ✅ · `uv run pytest -q tests/test_generation.py` ✅ · `uv run pytest -q tests/test_job_analysis.py` ✅ · `uv run ruff check app tests` ✅
+
+**Next milestone:** Phase 9 — Next.js dashboard + workflow screens.
+
 ## 2026-05-20 — Phase 7: Cover-letter generation graph
 
 **Scope:** LangGraph-based cover-letter agent workflow with LangChain structured generation, persisted run history, multiple structure styles, and per-run state memory.
