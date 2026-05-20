@@ -14,7 +14,7 @@
 - `[!] BLOCKED` — waiting on external input (note the blocker)
 
 ## Current pointer
-**Next phase to start:** **Phase 9 — Next.js dashboard + workflow screens**
+**Next phase to start:** **Phase 10 — MCP integration layer**
 
 When you (Claude) resume:
 1. Read this file's "Current pointer" line.
@@ -104,7 +104,7 @@ When you (Claude) resume:
 
 ---
 
-## Phase 9 — Next.js dashboard + workflow screens  `[ ] TODO`
+## Phase 9 — Next.js dashboard + workflow screens  `[x] DONE` (2026-05-20)
 **Scope:** port the 6 design-handoff screens (`auth`, `dashboard`, `generator`, `history`, `knowledge`, `settings`) to Next.js App Router. Wire to the API with TanStack Query. Zustand for client state. Auth guard middleware. Match the PitchCraft forest palette.
 **Acceptance:** end-to-end flow works in the browser — sign in → fill profile → paste a job → see analysis + drafts → save feedback → see it in history.
 

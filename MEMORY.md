@@ -33,6 +33,7 @@ Stable project context and working conventions for future implementation runs.
 - AI orchestration: LangChain + LangGraph
 - RAG: optional, only when needed for retrieval over user examples/guidelines/history
 - Prefer PostgreSQL + pgvector before introducing more infrastructure
+- In `apps/web`, `tsconfig.json` includes `.next/types`, so run `next build` before standalone `npm run typecheck` when verifying route changes.
 
 ## Safety Rules
 - Do not touch `application_app`.

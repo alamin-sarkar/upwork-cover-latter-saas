@@ -4,6 +4,28 @@ Append a dated entry per completed milestone. Newest at the top.
 
 ---
 
+## 2026-05-20 — Phase 9: Next.js dashboard and workflow screens
+
+**Scope:** replace the single-page web prototype with a routed App Router frontend wired to the live API for auth, settings, generation, feedback history, and knowledge management.
+
+**Delivered:**
+- `apps/web/src/app/auth/page.tsx` — real sign-in / register screen that calls the FastAPI auth endpoints, stores the JWT session, and redirects into the workspace.
+- `apps/web/middleware.ts` + `src/lib/auth.ts` + `src/lib/auth-store.ts` — cookie-backed auth guard middleware, persisted Zustand session state, and shared token helpers for protected routes.
+- `apps/web/src/components/providers.tsx` + `src/lib/query-client.ts` — TanStack Query provider setup for API-driven screens.
+- `apps/web/src/components/workspace-shell.tsx` + `src/app/(workspace)/layout.tsx` — protected app shell with routed navigation for dashboard, generator, history, knowledge, and settings.
+- `apps/web/src/app/(workspace)/dashboard/page.tsx` — live dashboard using feedback and profile queries to summarize readiness and recent outcomes.
+- `apps/web/src/app/(workspace)/generator/page.tsx` — end-to-end generator flow: analyze job, generate variants, select a draft, and save feedback memory.
+- `apps/web/src/app/(workspace)/history/page.tsx` — feedback timeline showing saved outcomes, accepted sections, and rejected patterns.
+- `apps/web/src/app/(workspace)/knowledge/page.tsx` — CRUD entry screens for guidelines and cover-letter samples.
+- `apps/web/src/app/(workspace)/settings/page.tsx` — profile, preferences, skills, and project management wired to the profile domain.
+- `apps/web/src/app/page.tsx` + `src/lib/api-client.ts` — root redirect based on session cookies and typed API client updates for authenticated requests.
+
+**Verification:** `npm ci` ✅ · `npm run lint` ✅ · `npm run build` ✅ · `npm run typecheck` ✅
+
+**Notes:** `tsconfig.json` depends on `.next/types`, so standalone `npm run typecheck` must run after a successful `next build` in this repo.
+
+**Next milestone:** Phase 10 — MCP integration layer.
+
 ## 2026-05-20 — Phase 8: Feedback memory and adaptive improvement
 
 **Scope:** persist post-generation feedback signals, retrieve relevant prior feedback with pgvector-backed memory search, and feed that context into the next cover-letter generation run.
