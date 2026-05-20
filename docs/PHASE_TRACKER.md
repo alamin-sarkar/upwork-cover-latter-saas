@@ -14,7 +14,7 @@
 - `[!] BLOCKED` — waiting on external input (note the blocker)
 
 ## Current pointer
-**Next phase to start:** **Phase 11 — Usage limits, observability, deployment hardening**
+**Next phase to start:** **No remaining tracked phases — await new roadmap work**
 
 When you (Claude) resume:
 1. Read this file's "Current pointer" line.
@@ -116,7 +116,7 @@ When you (Claude) resume:
 
 ---
 
-## Phase 11 — Usage limits, observability, deployment hardening  `[ ] TODO`
+## Phase 11 — Usage limits, observability, deployment hardening  `[x] DONE` (2026-05-20)
 **Scope:** plan-based rate limiting, structured logging (structlog), request tracing hooks, admin diagnostics, Celery workers wired for async jobs, Dockerfiles for api + web, CI workflow (lint + test + build), production-ready `.env` validation, deployment runbook.
 **Acceptance:** CI green; rate limits enforced; structured logs include request id; deployment runbook documented.
 

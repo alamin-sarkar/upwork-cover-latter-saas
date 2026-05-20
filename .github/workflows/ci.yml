@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: cover_letter
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d cover_letter"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+
+    env:
+      DATABASE_URL: postgresql+psycopg://postgres:postgres@localhost:5432/cover_letter
+      REDIS_URL: redis://localhost:6379/0
+      JWT_SECRET: ci-secret-token-with-32-characters
+      ADMIN_DIAGNOSTICS_TOKEN: ci-admin-diagnostics-token
+      ANTHROPIC_API_KEY: ""
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install API dependencies
+        working-directory: apps/api
+        run: uv sync --group dev
+
+      - name: Verify API
+        working-directory: apps/api
+        run: |
+          uv run alembic upgrade head
+          uv run ruff check app tests
+          uv run pytest -q
+
+      - name: Install web dependencies
+        working-directory: apps/web
+        run: npm ci
+
+      - name: Verify web
+        working-directory: apps/web
+        run: |
+          npm run lint
+          npm run build
+          npm run typecheck

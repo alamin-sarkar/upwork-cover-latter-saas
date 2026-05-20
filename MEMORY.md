@@ -34,6 +34,9 @@ Stable project context and working conventions for future implementation runs.
 - RAG: optional, only when needed for retrieval over user examples/guidelines/history
 - Prefer PostgreSQL + pgvector before introducing more infrastructure
 - In `apps/web`, `tsconfig.json` includes `.next/types`, so run `next build` before standalone `npm run typecheck` when verifying route changes.
+- API runtime now treats `X-Request-ID` as the canonical trace header and exposes `/health/ready` plus `/admin/diagnostics` for operational checks.
+- Plan-based daily limits are enforced on job analysis and generation surfaces; Redis is the primary backend with in-memory fallback for local/test execution.
+- Celery workers start from `app.worker.celery_app`, and deployment verification should include the diagnostics endpoint plus worker visibility.
 
 ## Safety Rules
 - Do not touch `application_app`.

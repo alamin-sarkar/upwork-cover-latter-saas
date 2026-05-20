@@ -12,6 +12,7 @@ This platform helps freelancers and agencies stop writing cover letters from scr
 - Feedback memory so later letters improve from earlier accept/reject/user edits
 - Full history and audit trail for every generated result
 - MCP integration layer so external AI tools can read profile/guideline/sample resources and invoke cover-letter generation
+- Production hardening with request tracing, plan-aware usage limits, deployment assets, and worker wiring
 
 ## Planned Stack
 - Frontend: Next.js (App Router), TypeScript, Tailwind, TanStack Query, Zustand
@@ -36,6 +37,7 @@ This platform helps freelancers and agencies stop writing cover letters from scr
 - ✅ FastAPI bootstrap and health endpoint exist
 - ✅ Next.js auth shell scaffold exists
 - ✅ MCP integration layer is available with per-user bearer tokens
+- ✅ Production hardening assets exist: request-id logging, diagnostics, rate limits, Celery worker wiring, Dockerfiles, and CI
 - ✅ Product direction updated for Upwork Cover Letter AI SaaS
 - ✅ Root planning, agent instructions, and memory docs prepared for phased delivery
 
@@ -46,5 +48,8 @@ This platform helps freelancers and agencies stop writing cover letters from scr
 - No fake AI paths or placeholder core behavior
 - Preserve user usage budget by delivering incrementally over multiple days
 
-## Immediate Next Milestone
-Complete Phase 11 hardening: usage limits, structured observability, async worker wiring, CI, and deployment safeguards.
+## Deployment Notes
+- API readiness: `GET /health/ready`
+- Admin diagnostics: `GET /admin/diagnostics` with `X-Admin-Token`
+- Celery worker entrypoint: `uv run celery -A app.worker.celery_app worker --loglevel=info`
+- Deployment runbook: `docs/runbooks/deployment.md`

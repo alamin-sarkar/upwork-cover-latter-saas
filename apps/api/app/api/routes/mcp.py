@@ -6,7 +6,7 @@ from collections.abc import Callable
 from datetime import UTC, datetime
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import ValidationError
@@ -16,6 +16,7 @@ from sqlalchemy.orm import selectinload
 
 from app.core.config import get_settings
 from app.core.deps import CurrentUser, DbSession, get_db
+from app.core.rate_limits import RateLimitAction, enforce_rate_limit
 from app.core.security import (
     create_mcp_token,
     get_mcp_token_hash,
@@ -135,6 +136,7 @@ async def revoke_token(
 @router.post("")
 async def handle_mcp_request(
     body: dict[str, Any],
+    request: Request,
     current_user: User = Depends(_get_current_mcp_user),
     session: AsyncSession = Depends(get_db),
 ):
@@ -189,6 +191,7 @@ async def handle_mcp_request(
                 arguments=params.get("arguments"),
                 current_user=current_user,
                 session=session,
+                request=request,
             )
             return JSONResponse(_result_response(request_id, result))
     except HTTPException as exc:
@@ -317,6 +320,7 @@ async def _call_tool(
     arguments: Any,
     current_user: User,
     session: AsyncSession,
+    request: Request | None = None,
 ) -> dict[str, Any]:
     if name != "generate_cover_letter":
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tool not found")
@@ -329,6 +333,12 @@ async def _call_tool(
         )
 
     body = CoverLetterGenerateRequest.model_validate(arguments)
+    rate_limit_response = Response()
+    await enforce_rate_limit(
+        user=current_user,
+        action=RateLimitAction.generation,
+        response=rate_limit_response,
+    )
     try:
         service = get_mcp_generation_service()
     except JobAnalysisConfigurationError as exc:
@@ -363,6 +373,10 @@ async def _call_tool(
     return {
         "content": [{"type": "text", "text": json.dumps(response, ensure_ascii=True)}],
         "structuredContent": response,
+        "meta": {
+            "request_id": getattr(request.state, "request_id", None) if request is not None else None,
+            "rate_limit": dict(rate_limit_response.headers),
+        },
         "isError": False,
     }
 

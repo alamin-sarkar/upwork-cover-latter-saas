@@ -4,6 +4,24 @@ Append a dated entry per completed milestone. Newest at the top.
 
 ---
 
+## 2026-05-20 — Phase 11: Usage limits, observability, deployment hardening
+
+**Scope:** harden the runtime with plan-aware rate limits, structured request logging, admin diagnostics, Celery worker wiring, container assets, CI checks, and a deployment runbook.
+
+**Delivered:**
+- `apps/api/app/core/config.py` + `.env.example` — production validation guards, runtime logging/diagnostics settings, Celery settings, and plan-based daily limit configuration.
+- `apps/api/app/core/logging.py` + `app/main.py` — structured request logging with `structlog`, `X-Request-ID` propagation, and a `/health/ready` dependency check endpoint.
+- `apps/api/app/core/redis.py`, `core/rate_limits.py`, `api/routes/job_analysis.py`, `api/routes/generation.py`, and `api/routes/mcp.py` — Redis-backed rate limiting with local fallback, enforced on job analysis and generation paths including MCP tool calls.
+- `apps/api/app/api/routes/admin.py` + `core/health.py` — protected diagnostics endpoint reporting request id, dependency health, rate-limit configuration, and Celery worker visibility.
+- `apps/api/app/worker.py` + `app/tasks.py` — Celery app wiring and concrete async task wrappers for job analysis, cover-letter generation, and worker ping.
+- `apps/api/Dockerfile`, `apps/web/Dockerfile`, `.github/workflows/ci.yml`, and `docs/runbooks/deployment.md` — production container builds, CI verification, and deployment guidance.
+- `apps/api/tests/test_hardening.py` + `apps/web/eslint.config.mjs` — hardening coverage plus lint ignores for generated Next.js output so CI checks source files only.
+- `README.md`, `apps/api/README.md`, `infra/README.md`, and `MEMORY.md` — documented runtime conventions, worker entrypoints, diagnostics, and deployment expectations.
+
+**Verification:** `uv run ruff check app tests` ✅ · `uv run pytest -q` → 61 passed ✅ · `npm run lint` ✅ · `npm run build` ✅ · `npm run typecheck` ✅
+
+**Next milestone:** no remaining tracked phases in `docs/PHASE_TRACKER.md`.
+
 ## 2026-05-20 — Phase 10: MCP integration layer
 
 **Scope:** expose user-owned profile and writing assets through an MCP-compatible FastAPI surface, secure it with per-user MCP tokens, and add a smoke test that exercises resources and generation over JSON-RPC.

@@ -37,6 +37,13 @@ tests/       # pytest test suite
 uv run pytest -q
 ```
 
+## Runtime hardening
+
+- Every HTTP response includes an `X-Request-ID` header.
+- `/health/ready` verifies database and Redis readiness.
+- `/admin/diagnostics` is protected by `X-Admin-Token` and reports dependency health, active rate-limit settings, and Celery worker visibility.
+- Daily plan-based limits are enforced for job analysis and cover-letter generation.
+
 ## MCP integration
 
 Create a per-user MCP token with your normal JWT session:
@@ -64,3 +71,15 @@ Supported MCP methods in this phase:
 - `tools/list`
 - `tools/call` for `generate_cover_letter`
 
+## Celery worker
+
+Start a worker locally with:
+
+```bash
+uv run celery -A app.worker.celery_app worker --loglevel=info
+```
+
+Registered tasks:
+- `pitchcraft.job_analysis.analyze_post`
+- `pitchcraft.cover_letters.generate`
+- `pitchcraft.worker.ping`

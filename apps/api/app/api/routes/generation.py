@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Response, status
 
 from app.core.deps import CurrentUser, DbSession
+from app.core.rate_limits import RateLimitAction, enforce_rate_limit
 from app.schemas.generation import CoverLetterGenerateRequest, CoverLetterGenerationResponse
 from app.services.generation import GenerationNotFoundError, get_cover_letter_generation_service
 from app.services.job_analysis import JobAnalysisConfigurationError
@@ -13,7 +14,14 @@ async def generate_cover_letters(
     body: CoverLetterGenerateRequest,
     current_user: CurrentUser,
     session: DbSession,
+    response: Response,
 ):
+    await enforce_rate_limit(
+        user=current_user,
+        action=RateLimitAction.generation,
+        response=response,
+    )
+
     try:
         service = get_cover_letter_generation_service()
     except JobAnalysisConfigurationError as exc:
