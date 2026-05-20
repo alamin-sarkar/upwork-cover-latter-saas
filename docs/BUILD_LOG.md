@@ -4,6 +4,26 @@ Append a dated entry per completed milestone. Newest at the top.
 
 ---
 
+## 2026-05-20 — Phase 7: Cover-letter generation graph
+
+**Scope:** LangGraph-based cover-letter agent workflow with LangChain structured generation, persisted run history, multiple structure styles, and per-run state memory.
+
+**Delivered:**
+- `packages/ai-workflows/src/ai_workflows/generation/` — shared generation schemas, LangChain prompt templates, structure guidance for the 5 supported letter styles, and a LangGraph state machine with checkpoint-backed run memory.
+- `apps/api/app/services/generation.py` — `CoverLetterGenerationService` that runs the graph end to end: normalize input, reuse or create analysis, retrieve profile evidence, retrieve guidelines/samples, draft variants, self-check variants, and persist the final graph state plus output history.
+- `apps/api/app/api/routes/generation.py` + `app/schemas/generation.py` — authenticated `POST /generate` endpoint that returns multiple structured variants, rationale, match notes, and the linked analysis snapshot.
+- `apps/api/app/models/generation.py` + `alembic/versions/0006_generation.py` — `cover_letter_generation_runs` and `cover_letter_generation_variants` tables for auditable history of raw job input, requested structures, prompt version, graph state, and final drafts.
+- `apps/api/pyproject.toml` — added `langchain-anthropic` and switched the local `ai-workflows` package source to editable mode so shared workflow code resolves cleanly from the monorepo.
+- `apps/api/tests/test_generation.py` — mocked LangChain model coverage for multi-variant generation, persisted run state, and reusing an existing analysis snapshot.
+
+**Verification:** `uv sync --reinstall-package ai-workflows` ✅ · `uv run alembic upgrade head` ✅ · `uv run ruff check app tests` ✅ · `uv run pytest -q` → 51 passed ✅
+
+**Notes:** this phase adds stateful LangGraph run memory and persisted generation state. Cross-run adaptive feedback memory remains Phase 8 and was not bundled into this delivery.
+
+**Next milestone:** Phase 8 — Feedback memory + adaptive improvement.
+
+---
+
 ## 2026-05-20 — Phase 6: Job post ingestion and structured analysis
 
 **Scope:** shared job-analysis workflow contract, Anthropic-backed structured extraction, persisted audit snapshots, and an authenticated analysis endpoint.

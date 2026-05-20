@@ -14,7 +14,7 @@
 - `[!] BLOCKED` — waiting on external input (note the blocker)
 
 ## Current pointer
-**Next phase to start:** **Phase 7 — Cover-letter generation graph**
+**Next phase to start:** **Phase 8 — Feedback memory + adaptive improvement**
 
 When you (Claude) resume:
 1. Read this file's "Current pointer" line.
@@ -87,7 +87,7 @@ When you (Claude) resume:
 
 ---
 
-## Phase 7 — Cover-letter generation graph  `[ ] TODO`
+## Phase 7 — Cover-letter generation graph  `[x] DONE` (2026-05-20)
 **Scope:**
 - LangGraph workflow: normalize → analyze → retrieve profile evidence → retrieve guidelines/samples → draft N variants → self-check → return
 - Five supported structures: concise / problem-solution / credibility-first / portfolio-first / consultative

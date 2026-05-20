@@ -11,10 +11,30 @@ from ai_workflows.job_analysis import (
     build_job_analysis_graph,
     build_job_analysis_prompt,
 )
+from ai_workflows.generation import (
+    COVER_LETTER_GENERATION_PROMPT_VERSION,
+    COVER_LETTER_REVIEW_PROMPT_VERSION,
+    CoverLetterReviewResult,
+    CoverLetterStructure,
+    DraftedCoverLetter,
+    FinalCoverLetterVariant,
+    build_cover_letter_draft_prompt,
+    build_cover_letter_generation_graph,
+    build_cover_letter_review_prompt,
+)
 
 __all__ = [
+    "COVER_LETTER_GENERATION_PROMPT_VERSION",
+    "COVER_LETTER_REVIEW_PROMPT_VERSION",
+    "CoverLetterReviewResult",
+    "CoverLetterStructure",
+    "DraftedCoverLetter",
+    "FinalCoverLetterVariant",
     "JOB_ANALYSIS_PROMPT_VERSION",
     "JobAnalysis",
+    "build_cover_letter_draft_prompt",
+    "build_cover_letter_generation_graph",
     "build_job_analysis_graph",
     "build_job_analysis_prompt",
+    "build_cover_letter_review_prompt",
 ]
