@@ -4,6 +4,22 @@ Append a dated entry per completed milestone. Newest at the top.
 
 ---
 
+## 2026-05-20 — Phase 10: MCP integration layer
+
+**Scope:** expose user-owned profile and writing assets through an MCP-compatible FastAPI surface, secure it with per-user MCP tokens, and add a smoke test that exercises resources and generation over JSON-RPC.
+
+**Delivered:**
+- `apps/api/app/models/mcp.py` + `alembic/versions/0008_mcp_api_tokens.py` — hashed per-user MCP token storage with revocation support.
+- `apps/api/app/core/security.py` — MCP token generation, hashing, prefix lookup, and constant-time verification helpers.
+- `apps/api/app/api/routes/mcp.py` + `app/schemas/mcp.py` — JWT-authenticated MCP token management endpoints plus an MCP JSON-RPC endpoint supporting `initialize`, `resources/list`, `resources/read`, `tools/list`, and `tools/call`.
+- `apps/api/app/api/router.py` + `app/models/__init__.py` — wired the new MCP route and model metadata into the application.
+- `apps/api/tests/test_mcp.py` — smoke coverage for token creation/revocation, resource listing and reads, and the `generate_cover_letter` tool path through the MCP endpoint.
+- `apps/api/README.md` + `README.md` — documented the bearer-token flow and a minimal MCP request sequence for external clients.
+
+**Verification:** `uv run alembic upgrade head` ✅ · `uv run ruff check app tests` ✅ · `uv run pytest -q` → 56 passed ✅
+
+**Next milestone:** Phase 11 — Usage limits, observability, deployment hardening.
+
 ## 2026-05-20 — Phase 9: Next.js dashboard and workflow screens
 
 **Scope:** replace the single-page web prototype with a routed App Router frontend wired to the live API for auth, settings, generation, feedback history, and knowledge management.

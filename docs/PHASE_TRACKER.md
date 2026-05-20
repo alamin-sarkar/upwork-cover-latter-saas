@@ -14,7 +14,7 @@
 - `[!] BLOCKED` — waiting on external input (note the blocker)
 
 ## Current pointer
-**Next phase to start:** **Phase 10 — MCP integration layer**
+**Next phase to start:** **Phase 11 — Usage limits, observability, deployment hardening**
 
 When you (Claude) resume:
 1. Read this file's "Current pointer" line.
@@ -110,7 +110,7 @@ When you (Claude) resume:
 
 ---
 
-## Phase 10 — MCP integration layer  `[ ] TODO`
+## Phase 10 — MCP integration layer  `[x] DONE` (2026-05-20)
 **Scope:** MCP server exposing profile, guidelines, samples, and a `generate_cover_letter` tool. Auth via per-user MCP token. Docs + a minimal MCP client smoke test.
 **Acceptance:** external MCP client can list resources and invoke the generator tool successfully.
 

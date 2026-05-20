@@ -1,3 +1,6 @@
+import hashlib
+import hmac
+import secrets
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
@@ -64,3 +67,19 @@ def decode_token(token: str) -> dict[str, Any]:
     """Decode and verify a JWT. Raises JWTError on failure."""
     settings = get_settings()
     return jwt.decode(token, settings.jwt_secret, algorithms=[settings.jwt_algorithm])
+
+
+def create_mcp_token() -> str:
+    return f"mcp_{secrets.token_urlsafe(32)}"
+
+
+def get_mcp_token_hash(token: str) -> str:
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
+def get_mcp_token_prefix(token: str) -> str:
+    return token[:24]
+
+
+def verify_mcp_token(token: str, token_hash: str) -> bool:
+    return hmac.compare_digest(get_mcp_token_hash(token), token_hash)

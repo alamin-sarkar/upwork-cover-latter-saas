@@ -3,6 +3,7 @@ from app.models.feedback import CoverLetterFeedback
 from app.models.generation import CoverLetterGenerationRun, CoverLetterGenerationVariant
 from app.models.job_analysis import JobAnalysisSnapshot
 from app.models.library import CoverLetterGuideline, CoverLetterSample
+from app.models.mcp import McpApiToken
 from app.models.profile import (
     Profile,
     ProfileCustomSection,
@@ -22,6 +23,7 @@ __all__ = [
     "JobAnalysisSnapshot",
     "CoverLetterGuideline",
     "CoverLetterSample",
+    "McpApiToken",
     "Plan",
     "Profile",
     "ProfileCustomSection",

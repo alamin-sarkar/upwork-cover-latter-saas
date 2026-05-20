@@ -11,7 +11,7 @@ This platform helps freelancers and agencies stop writing cover letters from scr
 - Multiple cover-letter structures, not one generic draft
 - Feedback memory so later letters improve from earlier accept/reject/user edits
 - Full history and audit trail for every generated result
-- MCP-ready integration layer so external AI tools can sync profile, guidelines, and samples
+- MCP integration layer so external AI tools can read profile/guideline/sample resources and invoke cover-letter generation
 
 ## Planned Stack
 - Frontend: Next.js (App Router), TypeScript, Tailwind, TanStack Query, Zustand
@@ -35,7 +35,7 @@ This platform helps freelancers and agencies stop writing cover letters from scr
 - ✅ Monorepo skeleton exists
 - ✅ FastAPI bootstrap and health endpoint exist
 - ✅ Next.js auth shell scaffold exists
-- ⏳ Auth backend is in progress
+- ✅ MCP integration layer is available with per-user bearer tokens
 - ✅ Product direction updated for Upwork Cover Letter AI SaaS
 - ✅ Root planning, agent instructions, and memory docs prepared for phased delivery
 
@@ -47,4 +47,4 @@ This platform helps freelancers and agencies stop writing cover letters from scr
 - Preserve user usage budget by delivering incrementally over multiple days
 
 ## Immediate Next Milestone
-Complete backend authentication (register, login, refresh, me, migration, tests) so later profile, history, and AI features can attach to real users.
+Complete Phase 11 hardening: usage limits, structured observability, async worker wiring, CI, and deployment safeguards.
