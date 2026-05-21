@@ -4,6 +4,19 @@ Append a dated entry per completed milestone. Newest at the top.
 
 ---
 
+## 2026-05-22 - Maintenance: API import bootstrap hardening for shared workflows
+
+**Scope:** fix local API startup failure (`ModuleNotFoundError: ai_workflows`) when running `uvicorn app.main:app` from `apps/api`.
+
+**Delivered:**
+- `apps/api/app/core/workspace_imports.py` - added a startup bootstrap that first attempts a normal `ai_workflows` import, then falls back to adding `packages/ai-workflows/src` to `sys.path` for monorepo-local execution.
+- `apps/api/app/main.py` - imports the bootstrap module before router imports so shared schemas/services resolve during module load.
+- `apps/api/tests/test_workspace_imports.py` - added tests covering fallback path injection and duplicate-path prevention.
+
+**Verification:** `uv run ruff check app/core/workspace_imports.py app/main.py tests/test_workspace_imports.py` [ok] · `uv run pytest -q tests/test_workspace_imports.py tests/test_health.py` -> 3 passed [ok] · `uv run python -c "import app.main; print('app-import-ok')"` [ok]
+
+**Next milestone:** no remaining tracked phases in `docs/PHASE_TRACKER.md`; continue via maintenance or new roadmap scope.
+
 ## 2026-05-21 â€” Maintenance: DB startup init + auth password visibility
 
 **Scope:** make local DB initialization obvious and safer for backend startup, and improve auth UX with password visibility control.
@@ -240,3 +253,8 @@ Append a dated entry per completed milestone. Newest at the top.
 **Verification:** scaffolding only; no runnable cross-service tests yet. `pytest -q` inside `apps/api` is wired to pass against the health endpoint once dependencies are installed.
 
 **Next milestone:** Phase 2 â€” FastAPI core hardening (db engine, dependency wiring, Alembic init, baseline migration).
+
+
+
+
+

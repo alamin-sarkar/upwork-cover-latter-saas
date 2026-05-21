@@ -37,6 +37,7 @@ Stable project context and working conventions for future implementation runs.
 - API runtime now treats `X-Request-ID` as the canonical trace header and exposes `/health/ready` plus `/admin/diagnostics` for operational checks.
 - Plan-based daily limits are enforced on job analysis and generation surfaces; Redis is the primary backend with in-memory fallback for local/test execution.
 - Celery workers start from `app.worker.celery_app`, and deployment verification should include the diagnostics endpoint plus worker visibility.
+- API startup imports `app.core.workspace_imports` first so local monorepo runs can resolve `packages/ai-workflows/src` even when `ai-workflows` was not reinstalled in the active virtual environment.
 
 ## Safety Rules
 - Do not touch `application_app`.
