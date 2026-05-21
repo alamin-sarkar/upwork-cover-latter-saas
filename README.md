@@ -48,6 +48,35 @@ This platform helps freelancers and agencies stop writing cover letters from scr
 - No fake AI paths or placeholder core behavior
 - Preserve user usage budget by delivering incrementally over multiple days
 
+## Local Development Quick Start
+- Start infrastructure first:
+
+```bash
+cd infra
+docker compose up -d postgres redis
+```
+
+- Start the API:
+
+```bash
+cd apps/api
+uv venv
+uv sync
+cp .env.example .env
+uv run alembic upgrade head
+uv run uvicorn app.main:app --reload --port 8000
+```
+
+- Optional convenience: keep `RUN_MIGRATIONS_ON_STARTUP=true` in `apps/api/.env` so pending Alembic migrations are applied automatically when the backend starts.
+
+- Start the web app:
+
+```bash
+cd apps/web
+npm install
+npm run dev
+```
+
 ## Deployment Notes
 - API readiness: `GET /health/ready`
 - Admin diagnostics: `GET /admin/diagnostics` with `X-Admin-Token`

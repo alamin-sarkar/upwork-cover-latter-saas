@@ -4,6 +4,21 @@ Append a dated entry per completed milestone. Newest at the top.
 
 ---
 
+## 2026-05-21 — Maintenance: DB startup init + auth password visibility
+
+**Scope:** make local DB initialization obvious and safer for backend startup, and improve auth UX with password visibility control.
+
+**Delivered:**
+- `apps/api/app/core/migrations.py` + `app/main.py` + `app/core/config.py` — added startup migration application so the API can auto-run pending Alembic migrations when `RUN_MIGRATIONS_ON_STARTUP=true`.
+- `apps/api/.env.example`, `apps/api/README.md`, and root `README.md` — documented the required local startup flow: bring up Postgres/Redis, run Alembic manually when needed, and use the corrected API port 8000.
+- `apps/api/app/core/redis.py` — removed loop-bound Redis client reuse so repeated requests/tests do not hit `Event loop is closed` during rate limiting.
+- `apps/api/tests/test_startup.py` — added startup-task coverage for migration auto-run enable/disable behavior.
+- `apps/web/src/app/auth/page.tsx` + `src/app/globals.css` — added an accessible show/hide password eye toggle for sign-in and sign-up.
+
+**Verification:** `uv run alembic upgrade head` ✅ · `uv run ruff check app tests` ✅ · `uv run pytest -q` → 63 passed ✅ · `npm run lint` ✅ · `npm run build` ✅ · `npm run typecheck` ✅
+
+**Next milestone:** no remaining tracked phases in `docs/PHASE_TRACKER.md`; continue with new roadmap or maintenance requests as needed.
+
 ## 2026-05-20 — Phase 11: Usage limits, observability, deployment hardening
 
 **Scope:** harden the runtime with plan-aware rate limits, structured request logging, admin diagnostics, Celery worker wiring, container assets, CI checks, and a deployment runbook.

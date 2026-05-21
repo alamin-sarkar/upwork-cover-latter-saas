@@ -19,6 +19,7 @@ export default function AuthPage() {
   const setSession = useSessionStore((state) => state.setSession);
   const [mode, setMode] = useState<AuthMode>("login");
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({
     fullName: "",
     email: "",
@@ -162,16 +163,39 @@ export default function AuthPage() {
 
             <div className="field">
               <label className="label" htmlFor="password">Password</label>
-              <input
-                id="password"
-                className="input"
-                type="password"
-                minLength={8}
-                required
-                value={form.password}
-                onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))}
-                placeholder="Minimum 8 characters"
-              />
+              <div className="password-input-wrap">
+                <input
+                  id="password"
+                  className="input password-input"
+                  type={showPassword ? "text" : "password"}
+                  minLength={8}
+                  required
+                  value={form.password}
+                  onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))}
+                  placeholder="Minimum 8 characters"
+                />
+                <button
+                  type="button"
+                  className="password-visibility-toggle"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  aria-pressed={showPassword}
+                  onClick={() => setShowPassword((current) => !current)}
+                >
+                  {showPassword ? (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M3 3l18 18" />
+                      <path d="M10.58 10.58A2 2 0 0 0 12 14a2 2 0 0 0 1.42-.58" />
+                      <path d="M9.88 5.09A10.94 10.94 0 0 1 12 5c5 0 9.27 3.11 11 7-1 2.23-2.73 4.11-4.9 5.3" />
+                      <path d="M6.61 6.61C4.62 7.86 3.03 9.73 2 12c1.73 3.89 6 7 10 7 1.42 0 2.78-.31 4.02-.87" />
+                    </svg>
+                  ) : (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  )}
+                </button>
+              </div>
             </div>
 
             {error ? (

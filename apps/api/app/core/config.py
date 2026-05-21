@@ -26,6 +26,7 @@ class Settings(BaseSettings):
 
     # Database
     database_url: str = "postgresql+psycopg://postgres:postgres@localhost:5432/cover_letter"
+    run_migrations_on_startup: bool = True
 
     # Redis / Celery
     redis_url: str = "redis://localhost:6379/0"

@@ -11,15 +11,22 @@ from app.api.router import api_router
 from app.core.config import get_settings
 from app.core.health import check_database, check_redis
 from app.core.logging import configure_logging
+from app.core.migrations import apply_migrations
 from app.core.redis import close_redis_client
 
 settings = get_settings()
 logger = structlog.get_logger("app.request")
 
 
+def run_startup_tasks() -> None:
+    if settings.run_migrations_on_startup:
+        apply_migrations()
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     configure_logging()
+    run_startup_tasks()
     yield
     await close_redis_client()
 

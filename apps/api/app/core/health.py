@@ -24,7 +24,6 @@ async def check_redis() -> dict[str, Any]:
     try:
         return {"ok": bool(await get_redis_client().ping())}
     except Exception as exc:  # pragma: no cover - runtime dependent
-        get_redis_client.cache_clear()
         return {"ok": False, "detail": str(exc)}
 
 

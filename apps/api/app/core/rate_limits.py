@@ -64,7 +64,6 @@ async def _increment_counter(key: str, *, expires_at: datetime) -> int:
             await client.expire(key, ttl_seconds)
         return int(count)
     except (RedisError, RuntimeError, OSError) as exc:
-        get_redis_client.cache_clear()
         logger.warning("rate_limit.redis_unavailable", error=str(exc))
         return await _memory_storage.increment(key, expires_at=expires_at)
 

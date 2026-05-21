@@ -5,12 +5,29 @@ FastAPI backend that powers the SaaS. PostgreSQL is the source of truth; LangCha
 ## Local development
 
 ```bash
+cd infra
+docker compose up -d postgres redis
+
 cd apps/api
 uv venv
 uv sync
 cp .env.example .env
-uv run uvicorn app.main:app --reload --port 8080
+uv run alembic upgrade head
+uv run uvicorn app.main:app --reload --port 8000
 ```
+
+### Database init / migrations
+
+- The app uses PostgreSQL from `infra/docker-compose.yml`; the DB is **not** auto-created from an in-memory fallback.
+- If `RUN_MIGRATIONS_ON_STARTUP=true` (default in `.env.example`), FastAPI automatically runs pending Alembic migrations at startup.
+- You can run the DB init manually anytime:
+
+```bash
+cd apps/api
+uv run alembic upgrade head
+```
+
+- If Postgres is not running yet, startup and migrations will fail. Start `postgres` first from `infra/`.
 
 Health probe:
 
