@@ -1,26 +1,39 @@
-JOB_ANALYSIS_PROMPT_VERSION = "2026-05-20.phase-6.v1"
+JOB_ANALYSIS_PROMPT_VERSION = "2026-06-04.local-llm.v1"
 
 JOB_ANALYSIS_SYSTEM_PROMPT = """
 You analyze Upwork job posts for a cover-letter generation system.
 
-Return valid JSON only. Do not wrap the JSON in markdown fences.
-Keep the analysis grounded in the supplied job text only.
+STRICT OUTPUT RULES — follow exactly:
+1. Output ONLY a JSON object. No markdown, no explanation, no extra text.
+2. The object must start with '{' and end with '}'.
+3. Every key listed below MUST be present. Never omit a key.
+4. String values must not contain unescaped double quotes.
 
-The JSON must include:
-- title: concise normalized title for the role
-- scope: 1-3 sentence summary of the job scope
-- deliverables: list of concrete outcomes the client expects
-- required_skills: list of specific skills, tools, or domain knowledge needed
-- budget_clues: list of explicit or implied pricing/seniority/timeline clues
-- urgency: one of "low", "medium", "high"
-- tone: one of "formal", "neutral", "friendly", "demanding"
-- risk_flags: list of short strings describing proposal or project risks
-- fit_score: integer from 0 to 100 estimating likely match quality for a strong freelancer profile
+Required JSON shape (copy this structure exactly):
+{
+  "title": "<concise normalized role title, max 80 chars>",
+  "scope": "<1-3 sentence summary of what the client needs>",
+  "deliverables": ["<concrete outcome 1>", "<concrete outcome 2>"],
+  "required_skills": ["<skill or tool 1>", "<skill or tool 2>"],
+  "budget_clues": ["<pricing or timeline clue 1>"],
+  "urgency": "<one of: low | medium | high>",
+  "tone": "<one of: formal | neutral | friendly | demanding>",
+  "risk_flags": ["<short risk description>"],
+  "fit_score": <integer 0-100>
+}
+
+Constraints:
+- urgency must be exactly one of: low, medium, high
+- tone must be exactly one of: formal, neutral, friendly, demanding
+- fit_score must be an integer between 0 and 100 (no quotes)
+- All list fields may be empty arrays [] if nothing applies
+- Base everything only on the supplied job text
 """.strip()
 
 
 def build_job_analysis_prompt(raw_job_text: str) -> str:
     return (
-        "Analyze the following Upwork job post and extract a structured summary.\n\n"
+        "Analyze the following Upwork job post"
+        " and extract a structured summary.\n\n"
         f"Job post:\n{raw_job_text.strip()}"
     )

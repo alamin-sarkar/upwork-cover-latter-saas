@@ -3,7 +3,6 @@ from __future__ import annotations
 import json
 import re
 import uuid
-from collections.abc import Sequence
 from typing import Any
 
 from ai_workflows.job_analysis import (
@@ -13,10 +12,10 @@ from ai_workflows.job_analysis import (
     build_job_analysis_prompt,
 )
 from ai_workflows.job_analysis.prompts import JOB_ANALYSIS_SYSTEM_PROMPT
-from anthropic import AsyncAnthropic
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import Settings, get_settings
+from app.core.llm_provider import raw_completion
 from app.models.job_analysis import JobAnalysisSnapshot
 
 
@@ -24,13 +23,12 @@ class JobAnalysisService:
     def __init__(
         self,
         *,
-        client: Any | None = None,
         settings: Settings | None = None,
+        # Test injection: async callable (raw_job_text) -> JobAnalysis
+        analyzer_override: Any | None = None,
     ) -> None:
         self.settings = settings or get_settings()
-        if client is None and not self.settings.anthropic_api_key:
-            raise JobAnalysisConfigurationError("Anthropic API key is not configured")
-        self.client = client or AsyncAnthropic(api_key=self.settings.anthropic_api_key)
+        self._analyzer_override = analyzer_override
         self.graph = build_job_analysis_graph(self._analyze_with_model)
 
     async def analyze_job_post(
@@ -41,7 +39,7 @@ class JobAnalysisService:
         session: AsyncSession,
     ) -> JobAnalysisSnapshot:
         state = await self.graph.ainvoke({"raw_job_text": raw_job_text})
-        analysis = state["analysis"]
+        analysis: JobAnalysis = state["analysis"]
 
         snapshot = JobAnalysisSnapshot(
             user_id=user_id,
@@ -56,8 +54,8 @@ class JobAnalysisService:
             risk_flags=analysis.risk_flags,
             fit_score=analysis.fit_score,
             analysis_payload=analysis.model_dump(mode="json"),
-            provider="anthropic",
-            model_name=self.settings.anthropic_model,
+            provider=self.settings.llm_provider,
+            model_name=self._active_model_name(),
             prompt_version=JOB_ANALYSIS_PROMPT_VERSION,
         )
         session.add(snapshot)
@@ -66,16 +64,24 @@ class JobAnalysisService:
         return snapshot
 
     async def _analyze_with_model(self, raw_job_text: str) -> JobAnalysis:
-        response = await self.client.messages.create(
-            model=self.settings.anthropic_model,
-            max_tokens=1200,
-            temperature=0,
-            system=JOB_ANALYSIS_PROMPT_VERSION + "\n\n" + JOB_ANALYSIS_SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": build_job_analysis_prompt(raw_job_text)}],
+        if self._analyzer_override is not None:
+            return await self._analyzer_override(raw_job_text)
+
+        system = (
+            JOB_ANALYSIS_PROMPT_VERSION + "\n\n" + JOB_ANALYSIS_SYSTEM_PROMPT
         )
-        text = _extract_text_blocks(response.content)
-        json_blob = _extract_json_blob(text)
-        return JobAnalysis.model_validate_json(json_blob)
+        messages = [
+            {"role": "user", "content": build_job_analysis_prompt(raw_job_text)}
+        ]
+        text = await raw_completion(
+            messages, system=system, max_tokens=1200, settings=self.settings
+        )
+        return JobAnalysis.model_validate_json(_extract_json_blob(text))
+
+    def _active_model_name(self) -> str:
+        if self.settings.llm_provider == "anthropic":
+            return self.settings.anthropic_model
+        return self.settings.local_llm_model
 
 
 def get_job_analysis_service() -> JobAnalysisService:
@@ -86,26 +92,17 @@ class JobAnalysisConfigurationError(RuntimeError):
     pass
 
 
-def _extract_text_blocks(content_blocks: Sequence[Any]) -> str:
-    parts: list[str] = []
-    for block in content_blocks:
-        if getattr(block, "type", None) == "text":
-            parts.append(block.text)
-    if not parts:
-        raise ValueError("Anthropic response did not include text content")
-    return "\n".join(parts).strip()
-
-
 def _extract_json_blob(text: str) -> str:
-    fenced_match = re.search(r"```json\s*(\{.*\})\s*```", text, re.DOTALL)
-    if fenced_match:
-        return fenced_match.group(1)
-
+    fenced = re.search(r"```json\s*(\{.*\})\s*```", text, re.DOTALL)
+    if fenced:
+        return fenced.group(1)
     try:
         json.loads(text)
     except json.JSONDecodeError:
-        object_match = re.search(r"(\{.*\})", text, re.DOTALL)
-        if not object_match:
-            raise ValueError("Model response did not contain a JSON object") from None
-        return object_match.group(1)
+        obj = re.search(r"(\{.*\})", text, re.DOTALL)
+        if not obj:
+            raise ValueError(
+                "Model response did not contain a JSON object"
+            ) from None
+        return obj.group(1)
     return text

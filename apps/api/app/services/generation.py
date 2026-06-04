@@ -16,18 +16,21 @@ from ai_workflows.generation import (
     build_cover_letter_review_prompt,
 )
 from ai_workflows.job_analysis import JobAnalysis
-from langchain_anthropic import ChatAnthropic
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.config import Settings, get_settings
-from app.models.generation import CoverLetterGenerationRun, CoverLetterGenerationVariant
+from app.core.llm_provider import langchain_chat_model, structured_output_method
+from app.models.generation import (
+    CoverLetterGenerationRun,
+    CoverLetterGenerationVariant,
+)
 from app.models.job_analysis import JobAnalysisSnapshot
 from app.models.library import CoverLetterGuideline, CoverLetterSample
 from app.models.profile import Profile
 from app.services.feedback_memory import retrieve_feedback_memory_context
-from app.services.job_analysis import JobAnalysisConfigurationError, JobAnalysisService
+from app.services.job_analysis import JobAnalysisService
 
 StructuredInvoker = Callable[[type[Any]], Any]
 
@@ -42,24 +45,20 @@ class CoverLetterGenerationService:
         settings: Settings | None = None,
     ) -> None:
         self.settings = settings or get_settings()
-        if (
-            draft_model_factory is None or review_model_factory is None
-        ) and not self.settings.anthropic_api_key:
-            raise JobAnalysisConfigurationError("Anthropic API key is not configured")
 
-        base_model = None
         if draft_model_factory is None or review_model_factory is None:
-            base_model = ChatAnthropic(
-                model=self.settings.anthropic_model,
-                api_key=self.settings.anthropic_api_key,
-                temperature=0,
+            base_model = langchain_chat_model(self.settings)
+            method = structured_output_method(self.settings)
+            default_factory: StructuredInvoker = (
+                lambda schema, _m=base_model, _mt=method: (
+                    _m.with_structured_output(schema, method=_mt)
+                )
             )
-        self.draft_model_factory = draft_model_factory or (
-            lambda schema: base_model.with_structured_output(schema, method="json_schema")
-        )
-        self.review_model_factory = review_model_factory or (
-            lambda schema: base_model.with_structured_output(schema, method="json_schema")
-        )
+        else:
+            default_factory = None  # type: ignore[assignment]
+
+        self.draft_model_factory = draft_model_factory or default_factory
+        self.review_model_factory = review_model_factory or default_factory
         self.job_analysis_service = job_analysis_service
         self.graph = build_cover_letter_generation_graph(
             analyze_job=self._analyze_job,

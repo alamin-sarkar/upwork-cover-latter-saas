@@ -47,6 +47,14 @@ class Settings(BaseSettings):
     anthropic_api_key: str | None = None
     anthropic_model: str = "claude-sonnet-4-6"
 
+    # Local LLM (Ollama / LM Studio — OpenAI-compatible)
+    # Set llm_provider to "ollama" or "lmstudio" to skip Anthropic entirely.
+    llm_provider: Literal["anthropic", "ollama", "lmstudio"] = "anthropic"
+    local_llm_base_url: str = "http://localhost:11434/v1"   # Ollama default; LM Studio uses :1234
+    local_llm_model: str = "qwen3:8b"
+    # How many times to retry if the local model returns malformed JSON
+    local_llm_json_retries: int = 3
+
     # Rate limits (per UTC day)
     rate_limit_window_seconds: int = 86400
     job_analysis_daily_limits: dict[str, int] = Field(
